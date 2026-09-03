@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Téranga Moov</string>
+    <string name="tagline">Super-app citoyenne de mobilité au Sénégal</string>
+    <string name="nav_live">En Direct</string>
+    <string name="nav_routes">Lignes &amp; Trajets</string>
+    <string name="nav_tickets">Pass &amp; Tickets</string>
+    <string name="nav_reports">Signalements</string>
+    <string name="nav_profile">Mon Espace</string>
+</resources>
