@@ -32,3 +32,31 @@ export async function createPayment({ id, userId, idempotencyKey, method, amount
   `;
   return result[0];
 }
+
+export async function listVehicles() {
+  if (!sql) throw new Error('POSTGRES_URL is required');
+  const result = await sql`SELECT * FROM vehicles ORDER BY updated_at DESC`;
+  return result;
+}
+
+export async function listAlerts() {
+  if (!sql) throw new Error('POSTGRES_URL is required');
+  const result = await sql`SELECT * FROM alerts ORDER BY created_at DESC`;
+  return result;
+}
+
+export async function findTicket(ticketId) {
+  if (!sql) throw new Error('POSTGRES_URL is required');
+  const result = await sql`SELECT id, expires_at, used_at FROM tickets WHERE id = ${ticketId} LIMIT 1`;
+  return result[0] ?? null;
+}
+
+export async function consumeTicket(ticketId) {
+  if (!sql) throw new Error('POSTGRES_URL is required');
+  const result = await sql`
+    UPDATE tickets SET used_at = NOW()
+    WHERE id = ${ticketId} AND used_at IS NULL AND expires_at > NOW()
+    RETURNING id
+  `;
+  return result.length === 1;
+}

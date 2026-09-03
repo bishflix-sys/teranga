@@ -16,6 +16,18 @@ La plateforme combine géolocalisation en temps réel, notifications intelligent
 - Pass numériques pour étudiants, travailleurs et usagers réguliers.
 - Statistiques personnalisées sur les trajets et les économies réalisées.
 - Lecture vocale et interface multilingue.
+- Recentrage GPS « Autour de moi », bouton SOS et mode économie de données.
+- QR de tickets chiffrés hors ligne, expiration de 15 minutes et anti-réutilisation locale.
+- Sélecteur TER, BRT, DDD, AFTU et Taxi avec tarification TER par zone ou classe.
+
+## Architecture
+
+Le dépôt contient deux parties :
+
+- `app/` : application Android Kotlin/Jetpack Compose, Room, WebView Leaflet et Android Keystore.
+- `backend/` : API Node.js déployable sur Vercel avec Neon PostgreSQL.
+
+Le backend expose notamment `GET /api/health`, `POST /api/auth/register`, `POST /api/auth/login`, ainsi que les routes de paiement et de vérification de tickets documentées dans [backend/README.md](backend/README.md).
 
 ## Business Model Canvas
 
@@ -74,8 +86,46 @@ Pour Android, fournir idéalement des exports carrés aux densités suivantes : 
 .\gradlew.bat test
 ```
 
+Vérifier également le backend :
+
+```powershell
+node --check backend/src/server.mjs
+node --check backend/src/db.mjs
+npm install --prefix backend
+```
+
 Ouvrir ensuite le projet dans Android Studio et choisir un émulateur ou un appareil Android. La carte Leaflet charge ses tuiles depuis CARTO/OpenStreetMap lorsqu'une connexion Internet est disponible.
 
-## Production
+## Neon et Vercel
 
-Avant une publication, remplacer les données simulées par une API ou un WebSocket sécurisé, configurer `google-services.json`, vérifier les clés de signature, ajouter une politique de confidentialité et tester les traductions avec des locuteurs natifs.
+1. Importer le dépôt dans Vercel et choisir `backend` comme **Root Directory**.
+2. Créer une base Neon depuis Vercel ou la console Neon.
+3. Exécuter [backend/db/schema.sql](backend/db/schema.sql) dans le SQL Editor Neon.
+4. Ajouter dans Vercel, pour Preview et Production :
+
+```env
+POSTGRES_URL=<url-neon>
+JWT_SECRET=<secret-aleatoire-de-32-caracteres-minimum>
+CORS_ORIGIN=https://<votre-projet>.vercel.app
+PAYMENTS_MODE=disabled
+```
+
+5. Redéployer et vérifier `https://<votre-projet>.vercel.app/api/health`.
+
+La réponse attendue lorsque la base est disponible contient `"status":"ok"` et `"database":"ready"`.
+
+Ne jamais committer `POSTGRES_URL`, `JWT_SECRET`, des tokens Mobile Money ou un fichier `.env`.
+
+## Sécurité et production
+
+Avant une publication :
+
+- remplacer les stockages mémoire du backend par PostgreSQL/Redis pour les véhicules, alertes et sessions ;
+- connecter les API officielles Wave, Orange Money et Free Money avec webhooks signés ;
+- utiliser une signature serveur pour les QR vérifiables par plusieurs contrôleurs ;
+- ajouter rate limiting, rotation des secrets, logs structurés et monitoring ;
+- configurer `google-services.json`, les clés de signature et Firebase Cloud Messaging ;
+- ajouter caméra, NFC carte réel, géofencing serveur et calculateur intermodal ;
+- publier une politique de confidentialité conforme à la CDP et valider les traductions avec des locuteurs natifs.
+
+Le dossier `backend/node_modules/` est ignoré par Git. Les secrets doivent être configurés uniquement dans Vercel ou dans l’environnement local.
