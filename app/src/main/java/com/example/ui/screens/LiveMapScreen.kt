@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.QrCode
@@ -101,6 +102,7 @@ fun LiveMapScreen(
     val selectedCategory by viewModel.selectedCategoryFilter.collectAsStateWithLifecycle()
     val selectedVehicle by viewModel.selectedVehicle.collectAsStateWithLifecycle()
     val passes by viewModel.passes.collectAsStateWithLifecycle()
+    val userLocation by viewModel.userLocation.collectAsStateWithLifecycle()
 
     val filteredVehicles = if (selectedCategory == null) {
         vehicles
@@ -274,8 +276,26 @@ fun LiveMapScreen(
                 TransitLiveMapCanvas(
                     vehicles = filteredVehicles,
                     selectedVehicle = selectedVehicle,
-                    onSelectVehicle = { viewModel.selectVehicle(it) }
+                    onSelectVehicle = { viewModel.selectVehicle(it) },
+                    userLocation = userLocation
                 )
+
+                Surface(
+                    onClick = { viewModel.refreshUserLocation() },
+                    shape = RoundedCornerShape(12.dp),
+                    color = HighDensitySurface,
+                    shadowElevation = 3.dp,
+                    modifier = Modifier.testTag("btn_around_me")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Default.MyLocation, contentDescription = "Centrer autour de moi", tint = HighDensityIndigo, modifier = Modifier.size(17.dp))
+                        Text("Autour de moi", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = HighDensitySlate900)
+                    }
+                }
 
                 // High Density Floating Incident Card
                 val topAlert = alerts.firstOrNull()

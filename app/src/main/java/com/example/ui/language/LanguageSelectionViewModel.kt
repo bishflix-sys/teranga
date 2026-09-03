@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
  * ViewModel managing the selection and persistence of Senegal's 20 national languages
  * and French, coordinating with LanguagePreferencesRepository and VoiceAnnouncer.
  */
-class LanguageSelectionViewModel(
+class LanguageSelectionViewModel @JvmOverloads constructor(
     application: Application,
     val preferencesRepository: LanguagePreferencesRepository = LanguagePreferencesRepository.getInstance(application)
 ) : AndroidViewModel(application) {

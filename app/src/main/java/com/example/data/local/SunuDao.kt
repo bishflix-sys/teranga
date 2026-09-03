@@ -18,6 +18,9 @@ interface TicketDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTicket(ticket: TicketEntity): Long
 
+    @Query("SELECT * FROM tickets WHERE id = :ticketId LIMIT 1")
+    suspend fun getTicket(ticketId: Int): TicketEntity?
+
     @Query("UPDATE tickets SET isValidated = 1 WHERE id = :ticketId")
     suspend fun markValidated(ticketId: Int)
 

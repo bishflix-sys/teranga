@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +37,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -65,6 +68,7 @@ import com.example.data.model.TicketEntity
 import com.example.data.model.TransportCategory
 import com.example.ui.TransitViewModel
 import com.example.ui.components.DigitalPassCard
+import com.example.data.ticket.TerFareCalculator
 import com.example.ui.theme.HighDensityBg
 import com.example.ui.theme.HighDensityIndigo
 import com.example.ui.theme.HighDensityIndigoBorder
@@ -92,6 +96,20 @@ fun TicketsAndPassScreen(
 
     var selectedTab by remember { mutableIntStateOf(0) } // 0 = Mes Tickets, 1 = Cartes & Abonnements
     var showSubscribeDialog by remember { mutableStateOf(false) }
+    var selectedOperator by remember { mutableStateOf(TransportCategory.TER) }
+    var selectedTerZones by remember { mutableIntStateOf(3) }
+    var firstClassTer by remember { mutableStateOf(false) }
+    val selectedFare = if (selectedOperator == TransportCategory.TER) {
+        TerFareCalculator.calculate(selectedTerZones, firstClassTer)
+    } else {
+        when (selectedOperator) {
+            TransportCategory.BRT -> 400
+            TransportCategory.DAKAR_DEM_DIKK -> 200
+            TransportCategory.AFTU_TATA -> 250
+            TransportCategory.TAXI_CLANDO -> 1_000
+            else -> 500
+        }
+    }
 
     LazyColumn(
         modifier = modifier
@@ -158,6 +176,59 @@ fun TicketsAndPassScreen(
                             color = if (selectedTab == 1) HighDensitySlate900 else HighDensitySlate500
                         )
                     }
+
+                }
+            }
+        }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Opérateur", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = HighDensitySlate900)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(listOf(TransportCategory.TER, TransportCategory.BRT, TransportCategory.DAKAR_DEM_DIKK, TransportCategory.AFTU_TATA, TransportCategory.TAXI_CLANDO)) { operator ->
+                        FilterChip(
+                            selected = selectedOperator == operator,
+                            onClick = { selectedOperator = operator },
+                            label = { Text(operator.shortLabel()) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = HighDensityIndigoLight, selectedLabelColor = HighDensityIndigo)
+                        )
+                    }
+                }
+                if (selectedOperator == TransportCategory.TER) {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(listOf(1, 2, 3, 4)) { option ->
+                            if (option <= 3) {
+                                FilterChip(
+                                    selected = selectedTerZones == option && !firstClassTer,
+                                    onClick = { selectedTerZones = option; firstClassTer = false },
+                                    label = { Text("$option zone${if (option > 1) "s" else ""} • ${TerFareCalculator.calculate(option)} F") }
+                                )
+                            } else {
+                                FilterChip(
+                                    selected = firstClassTer,
+                                    onClick = { firstClassTer = true },
+                                    label = { Text("1ère classe • ${TerFareCalculator.FIRST_CLASS_FARE_CFA} F") }
+                                )
+                            }
+                        }
+                    }
+                }
+                Button(
+                    onClick = {
+                        viewModel.openPaymentModal(
+                            lineCode = selectedOperator.shortLabel(),
+                            category = selectedOperator,
+                            origin = if (selectedOperator == TransportCategory.TER) "Dakar" else "Gare Petersen",
+                            destination = if (selectedOperator == TransportCategory.TER) "Diamniadio" else "Centre-ville",
+                            fareCfa = selectedFare
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().height(46.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = HighDensityIndigo)
+                ) {
+                    Icon(Icons.Default.Payment, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Acheter • $selectedFare FCFA", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -311,6 +382,15 @@ fun TicketsAndPassScreen(
             }
         )
     }
+}
+
+private fun TransportCategory.shortLabel(): String = when (this) {
+    TransportCategory.TER -> "TER"
+    TransportCategory.BRT -> "BRT"
+    TransportCategory.DAKAR_DEM_DIKK -> "DDD"
+    TransportCategory.AFTU_TATA -> "AFTU"
+    TransportCategory.TAXI_CLANDO -> "Taxi"
+    TransportCategory.CAR_RAPIDE -> "Car rapide"
 }
 
 @Composable

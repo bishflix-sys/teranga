@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3s4VfXcQY3Vx2V3dK0m7w5nY8F7g=" crossorigin="">
+  <style>
+    html, body, #map { height: 100%; margin: 0; background: #eef2f4; }
+    #map { perspective: 900px; overflow: hidden; }
+    .leaflet-tile-pane { filter: saturate(.82) contrast(1.04); }
+    .vehicle-marker { width: 34px; height: 34px; border-radius: 50% 50% 50% 4px; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 5px 12px #03101aaa; display: grid; place-items: center; }
+    .vehicle-marker span { transform: rotate(45deg); color: #071521; font: 800 10px sans-serif; }
+    .vehicle-marker.selected { outline: 4px solid #f5bd3666; transform: rotate(-45deg) scale(1.25); }
+    .user-marker { width: 16px; height: 16px; border-radius: 50%; background: #20d47a; border: 3px solid white; box-shadow: 0 0 0 10px #20d47a33, 0 2px 8px #001018aa; }
+    .map-label { position: absolute; z-index: 500; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; color: white; font: 700 11px sans-serif; letter-spacing: .08em; pointer-events: none; }
+    .map-label span { background: #17212ddd; border-radius: 12px; padding: 7px 10px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="map-label"><span>RADAR EN DIRECT • DAKAR</span><span id="count">0 véhicules</span></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    // Keep the map focused on Grand Dakar and avoid blank tiles after Compose lays out the WebView.
+    const map = L.map('map', {
+      zoomControl: false,
+      attributionControl: false
+    }).setView([14.6937, -17.4441], 13);
+    const dakarBounds = L.latLngBounds(
+      L.latLng(14.6300, -17.5200),
+      L.latLng(14.8500, -17.2000)
+    );
+    map.setMaxBounds(dakarBounds);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19
+    }).addTo(map);
+    setTimeout(() => map.invalidateSize(), 250);
+    map.whenReady(() => map.invalidateSize(true));
+    L.marker([14.7167, -17.4677], { icon: L.divIcon({ className: '', html: '<div class="user-marker"></div>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(map);
+    const markers = new Map();
+    const brtIcon = L.icon({ iconUrl: 'icons/brt-bus.svg', iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -16] });
+    const terIcon = L.icon({ iconUrl: 'icons/ter-train.svg', iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -16] });
+    const colors = { 'BRT Dakar': '#23c7d9', 'TER Train': '#d889e8', 'Dakar Dem Dikk': '#20d47a', 'AFTU Tata': '#55d2c5', 'Car Rapide / Ndiaga': '#f5bd36', 'Taxi Urbain / Clando': '#f48b56' };
+    window.updateVehicles = function(vehicles, selectedId, userLocation) {
+      if (userLocation) map.setView([userLocation.lat, userLocation.lng], 15);
+      const activeIds = new Set(vehicles.map(v => v.id));
+      markers.forEach((marker, id) => { if (!activeIds.has(id)) { map.removeLayer(marker); markers.delete(id); } });
+      vehicles.forEach(v => {
+        const color = colors[v.category] || '#f5bd36';
+        const html = '<div class="vehicle-marker ' + (v.id === selectedId ? 'selected' : '') + '" style="background:' + color + '"><span>' + v.line + '</span></div>';
+        const icon = v.category === 'BRT Dakar' ? brtIcon : v.category === 'TER Train' ? terIcon : L.divIcon({ className: '', html, iconSize: [34, 34], iconAnchor: [17, 31] });
+        let marker = markers.get(v.id);
+        if (!marker) {
+          marker = L.marker([v.lat, v.lng], { icon, title: v.line + ' ' + v.number }).addTo(map);
+          marker.on('click', () => window.TerangaBridge && window.TerangaBridge.selectVehicle(v.id));
+          markers.set(v.id, marker);
+        } else { marker.setLatLng([v.lat, v.lng]).setIcon(icon); }
+        marker.bindPopup('<div style="text-align:center;font-family:Roboto,sans-serif"><strong>' + v.category + ' - ' + v.line + '</strong><br>Direction : ' + v.destination + '<br><span>Prochain arrêt : ' + v.nextStop + ' (dans ' + v.eta + ' min)</span></div>');
+      });
+      document.getElementById('count').textContent = vehicles.length + ' véhicules';
+      requestAnimationFrame(() => map.invalidateSize(true));
+    };
+  </script>
+</body>
+</html>

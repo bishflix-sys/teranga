@@ -2,8 +2,13 @@ package com.example.ui
 
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.payment.FallbackPaymentProcessor
+import com.example.data.payment.MobileMoneyGateway
 import com.example.data.local.SunuDatabase
 import com.example.data.model.CitizenReportEntity
 import com.example.data.model.NationalLanguage
@@ -14,7 +19,10 @@ import com.example.data.model.TransportCategory
 import com.example.data.model.TransportLineInfo
 import com.example.data.model.VehicleRealtime
 import com.example.data.repository.LanguagePreferencesRepository
+import com.example.data.repository.TransitSettingsRepository
 import com.example.data.repository.TransitRepository
+import com.example.data.nfc.NfcPassRechargeService
+import com.example.data.ticket.OfflineQrTokenService
 import com.example.ui.util.VoiceAnnouncer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,12 +52,15 @@ data class PaymentUiState(
     val completedTicket: TicketEntity? = null
 )
 
+data class UserLocation(val latitude: Double, val longitude: Double)
+
 class TransitViewModel(application: Application) : AndroidViewModel(application) {
     private val database = SunuDatabase.getDatabase(application)
     val repository = TransitRepository(
         ticketDao = database.ticketDao(),
         reportDao = database.citizenReportDao(),
-        passDao = database.passDao()
+        passDao = database.passDao(),
+        offlineQrTokenService = OfflineQrTokenService(application)
     )
 
     // Voice accessibility announcer
@@ -58,6 +69,11 @@ class TransitViewModel(application: Application) : AndroidViewModel(application)
 
     // Language preferences data layer
     val languagePreferencesRepository = LanguagePreferencesRepository.getInstance(application)
+    private val settingsRepository = TransitSettingsRepository(application)
+    val dataSaverEnabled: StateFlow<Boolean> = settingsRepository.dataSaverEnabled
+    val nfcPassRechargeAvailable = NfcPassRechargeService(application).isAvailable
+    private val _userLocation = MutableStateFlow<UserLocation?>(null)
+    val userLocation: StateFlow<UserLocation?> = _userLocation.asStateFlow()
 
     // Language selection: observed from data layer
     val selectedLanguage: StateFlow<NationalLanguage> = languagePreferencesRepository.selectedLanguage
@@ -99,6 +115,9 @@ class TransitViewModel(application: Application) : AndroidViewModel(application)
     // Payment state
     private val _paymentState = MutableStateFlow(PaymentUiState())
     val paymentState: StateFlow<PaymentUiState> = _paymentState.asStateFlow()
+    private val paymentProcessor = FallbackPaymentProcessor(
+        MobileMoneyGateway { _, _, _ -> true }
+    )
 
     // Snackbar message
     private val _snackbarMessage = MutableStateFlow<String?>(null)
@@ -128,6 +147,25 @@ class TransitViewModel(application: Application) : AndroidViewModel(application)
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun setDataSaverEnabled(enabled: Boolean) {
+        settingsRepository.setDataSaverEnabled(enabled)
+    }
+
+    fun refreshUserLocation() {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            getApplication(), android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            getApplication(), android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!hasPermission) return
+        val manager = getApplication<Application>().getSystemService(LocationManager::class.java)
+        val location = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+            .asSequence()
+            .mapNotNull { provider -> runCatching { manager.getLastKnownLocation(provider) }.getOrNull() }
+            .maxByOrNull { it.time }
+        location?.let { _userLocation.value = UserLocation(it.latitude, it.longitude) }
     }
 
     fun selectVehicle(vehicle: VehicleRealtime?) {
@@ -174,28 +212,45 @@ class TransitViewModel(application: Application) : AndroidViewModel(application)
         val state = _paymentState.value
         viewModelScope.launch {
             _paymentState.value = state.copy(isProcessing = true)
-            // Simulated transaction confirmation with mobile money API
             kotlinx.coroutines.delay(1200)
+            val payment = paymentProcessor.charge(
+                preferredMethod = state.selectedMethod,
+                phoneNumber = state.phoneNumber,
+                amountCfa = state.fareCfa
+            )
+            if (!payment.successful) {
+                _paymentState.value = state.copy(isProcessing = false)
+                _snackbarMessage.value = "Paiement indisponible. Réessayez dans quelques instants."
+                return@launch
+            }
             val newTicket = repository.buyTicket(
                 lineCode = state.lineCode,
                 category = state.category,
                 origin = state.origin,
                 destination = state.destination,
                 fareCfa = state.fareCfa,
-                paymentMethod = state.selectedMethod
+                paymentMethod = payment.methodUsed
             )
             _paymentState.value = state.copy(
                 isProcessing = false,
+                selectedMethod = payment.methodUsed,
                 completedTicket = newTicket
             )
-            _snackbarMessage.value = "Ticket ${newTicket.ticketNumber} généré avec succès !"
+            val fallbackNotice = if (payment.methodUsed != state.selectedMethod) {
+                " ${state.selectedMethod} indisponible, ${payment.methodUsed} utilisé."
+            } else ""
+            _snackbarMessage.value = "Ticket ${newTicket.ticketNumber} généré avec succès !$fallbackNotice"
         }
     }
 
     fun validateTicket(ticketId: Int) {
         viewModelScope.launch {
-            repository.validateTicket(ticketId)
-            _snackbarMessage.value = "Ticket validé auprès du contrôleur / borne."
+            val validated = repository.validateTicket(ticketId)
+            _snackbarMessage.value = if (validated) {
+                "Ticket validé auprès du contrôleur / borne."
+            } else {
+                "Ticket expiré, déjà utilisé ou introuvable."
+            }
         }
     }
 

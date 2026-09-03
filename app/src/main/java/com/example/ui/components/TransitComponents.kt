@@ -1,17 +1,10 @@
 package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,11 +68,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -88,6 +77,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.viewinterop.AndroidView
+import android.webkit.JavascriptInterface
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import org.json.JSONArray
 import com.example.data.model.CitizenReportEntity
 import com.example.data.model.CrowdingLevel
 import com.example.data.model.PassSubscriptionEntity
@@ -95,6 +89,7 @@ import com.example.data.model.TicketEntity
 import com.example.data.model.TrafficAlert
 import com.example.data.model.TransportCategory
 import com.example.data.model.VehicleRealtime
+import com.example.ui.UserLocation
 import com.example.ui.PaymentUiState
 import com.example.ui.theme.HighDensityAlertBg
 import com.example.ui.theme.HighDensityAlertBorder
@@ -201,292 +196,74 @@ fun CrowdingPill(level: CrowdingLevel, modifier: Modifier = Modifier) {
 
 private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
-/**
- * Interactive canvas representing the Dakar Transit Network:
- * Displays Dakar peninsula topography, coastal waters, major transit corridors
- * (SunuBRT reserved track, TER track, VDN, Autoroute), and real-time animated vehicles.
- */
+/** Interactive Leaflet map with a lightweight 3D visual treatment for Dakar transit. */
 @Composable
 fun TransitLiveMapCanvas(
     vehicles: List<VehicleRealtime>,
     selectedVehicle: VehicleRealtime?,
     onSelectVehicle: (VehicleRealtime) -> Unit,
+    userLocation: UserLocation? = null,
     modifier: Modifier = Modifier
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "Radar")
-    val pulseRadius by infiniteTransition.animateFloat(
-        initialValue = 10f,
-        targetValue = 40f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "pulse"
-    )
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.7f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "pulseAlpha"
-    )
+    val vehicleJson = remember(vehicles) { vehicles.toLeafletJson() }
+    val selectedId = selectedVehicle?.id.orEmpty()
+    val userLocationJson = userLocation?.let { "{\"lat\":${it.latitude},\"lng\":${it.longitude}}" } ?: "null"
 
-    Box(
+    AndroidView(
         modifier = modifier
             .fillMaxWidth()
             .height(280.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF0F1A1C))
-            .pointerInput(vehicles) {
-                detectTapGestures { tapOffset ->
-                    // Find closest vehicle on canvas
-                    val width = size.width.toFloat()
-                    val height = size.height.toFloat()
-                    val closest = vehicles.minByOrNull { veh ->
-                        val (vx, vy) = mapCoordsToCanvas(veh.latitude, veh.longitude, width, height)
-                        val dx = vx - tapOffset.x
-                        val dy = vy - tapOffset.y
-                        dx * dx + dy * dy
-                    }
-                    if (closest != null) {
-                        val (vx, vy) = mapCoordsToCanvas(closest.latitude, closest.longitude, width, height)
-                        val distSq = (vx - tapOffset.x) * (vx - tapOffset.x) + (vy - tapOffset.y) * (vy - tapOffset.y)
-                        if (distSq < 2500f) { // Within 50px
-                            onSelectVehicle(closest)
-                        }
+            .testTag("leaflet_live_map"),
+        factory = { context ->
+            WebView(context).apply {
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.allowFileAccess = true
+                settings.allowContentAccess = false
+                settings.allowFileAccessFromFileURLs = false
+                settings.allowUniversalAccessFromFileURLs = false
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView, url: String) {
+                        view.evaluateJavascript(
+                            "window.updateVehicles($vehicleJson, '$selectedId', $userLocationJson);",
+                            null
+                        )
                     }
                 }
+                addJavascriptInterface(object {
+                    @JavascriptInterface
+                    fun selectVehicle(id: String) {
+                        vehicles.firstOrNull { it.id == id }?.let(onSelectVehicle)
+                    }
+                }, "TerangaBridge")
+                loadUrl("file:///android_asset/leaflet_map.html")
             }
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val canvasW = size.width
-            val canvasH = size.height
-
-            // 1. Water Background with ocean gradient
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0A1926), Color(0xFF05131E))
-                )
-            )
-
-            // 2. Draw Dakar Peninsula shape (Stylized Cap-Vert geometry)
-            val dakarPeninsula = Path().apply {
-                moveTo(canvasW * 0.05f, canvasH * 0.15f) // Pointe des Almadies
-                lineTo(canvasW * 0.35f, canvasH * 0.10f) // Yoff / LSS
-                lineTo(canvasW * 0.70f, canvasH * 0.18f) // Guédiawaye littoral
-                lineTo(canvasW * 0.95f, canvasH * 0.35f) // Rufisque / Bargny
-                lineTo(canvasW * 0.90f, canvasH * 0.70f) // Baie de Rufisque
-                lineTo(canvasW * 0.55f, canvasH * 0.65f) // Hann Bel-Air
-                lineTo(canvasW * 0.40f, canvasH * 0.88f) // Plateau / Anse Bernard
-                lineTo(canvasW * 0.28f, canvasH * 0.72f) // Corniche Ouest / Fann
-                lineTo(canvasW * 0.18f, canvasH * 0.48f) // Ouakam / Mamelles
-                close()
-            }
-            drawPath(
-                path = dakarPeninsula,
-                brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFF1B2B2B), Color(0xFF112022)),
-                    center = Offset(canvasW * 0.4f, canvasH * 0.45f),
-                    radius = canvasW * 0.6f
-                )
-            )
-            drawPath(
-                path = dakarPeninsula,
-                color = Color(0xFF00684A).copy(alpha = 0.35f),
-                style = Stroke(width = 2f)
-            )
-
-            // 3. Major transit corridors
-            // A. SunuBRT dedicated corridor (Guédiawaye -> Petersen) in vibrant electric blue
-            val brtPath = Path().apply {
-                moveTo(canvasW * 0.70f, canvasH * 0.20f) // Guédiawaye
-                cubicTo(
-                    canvasW * 0.55f, canvasH * 0.30f,
-                    canvasW * 0.45f, canvasH * 0.45f,
-                    canvasW * 0.38f, canvasH * 0.85f // Petersen Plateau
-                )
-            }
-            drawPath(
-                path = brtPath,
-                color = Color(0xFF00E5FF).copy(alpha = 0.8f),
-                style = Stroke(width = 5f)
-            )
-
-            // B. TER Express Track (Dakar Gare -> Diamniadio) in deep purple
-            val terPath = Path().apply {
-                moveTo(canvasW * 0.39f, canvasH * 0.86f) // Dakar
-                cubicTo(
-                    canvasW * 0.52f, canvasH * 0.58f,
-                    canvasW * 0.75f, canvasH * 0.42f,
-                    canvasW * 0.98f, canvasH * 0.48f // Diamniadio
-                )
-            }
-            drawPath(
-                path = terPath,
-                color = Color(0xFFCE93D8).copy(alpha = 0.7f),
-                style = Stroke(width = 3.5f)
-            )
-
-            // C. VDN & Corniche (Yellow / Amber)
-            val vdnPath = Path().apply {
-                moveTo(canvasW * 0.10f, canvasH * 0.18f) // Almadies
-                lineTo(canvasW * 0.25f, canvasH * 0.35f)
-                lineTo(canvasW * 0.35f, canvasH * 0.55f)
-            }
-            drawPath(
-                path = vdnPath,
-                color = Color(0xFFFFB300).copy(alpha = 0.5f),
-                style = Stroke(width = 2.5f)
-            )
-
-            // 4. User Location Pin with radar pulse (Place de l'Obélisque / Dakar centre)
-            val userX = canvasW * 0.42f
-            val userY = canvasH * 0.60f
-            drawCircle(
-                color = Color(0xFF00E676).copy(alpha = pulseAlpha),
-                radius = pulseRadius,
-                center = Offset(userX, userY)
-            )
-            drawCircle(
-                color = Color(0xFF00E676),
-                radius = 6f,
-                center = Offset(userX, userY)
-            )
-
-            // 5. Render moving vehicles
-            vehicles.forEach { vehicle ->
-                val (vx, vy) = mapCoordsToCanvas(vehicle.latitude, vehicle.longitude, canvasW, canvasH)
-                val isSelected = vehicle.id == selectedVehicle?.id
-
-                val vehColor = when (vehicle.category) {
-                    TransportCategory.BRT -> Color(0xFF00E5FF)
-                    TransportCategory.TER -> Color(0xFFE040FB)
-                    TransportCategory.DAKAR_DEM_DIKK -> Color(0xFF00E676)
-                    TransportCategory.AFTU_TATA -> Color(0xFF26C6DA)
-                    TransportCategory.CAR_RAPIDE -> Color(0xFFFFD54F)
-                    TransportCategory.TAXI_CLANDO -> Color(0xFFFF7043)
-                }
-
-                if (isSelected) {
-                    drawCircle(
-                        color = vehColor.copy(alpha = 0.4f),
-                        radius = 18f,
-                        center = Offset(vx, vy)
-                    )
-                    drawCircle(
-                        color = Color.White,
-                        radius = 9f,
-                        center = Offset(vx, vy),
-                        style = Stroke(width = 2.5f)
-                    )
-                }
-
-                drawCircle(
-                    color = vehColor,
-                    radius = if (isSelected) 7f else 5.5f,
-                    center = Offset(vx, vy)
-                )
-            }
+        },
+        update = { webView ->
+            webView.evaluateJavascript("window.updateVehicles($vehicleJson, '$selectedId', $userLocationJson);", null)
+        },
+        onRelease = { webView ->
+            webView.stopLoading()
+            webView.removeJavascriptInterface("TerangaBridge")
+            webView.destroy()
         }
+    )
+}
 
-        // Overlay header labels
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier
-                    .background(Color(0xCC000000), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(Color(0xFF00E676), CircleShape)
-                )
-                Text(
-                    text = "RADAR EN DIRECT • DAKAR",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-            }
-
-            Text(
-                text = "${vehicles.size} véhicules connectés",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFFB0BEC5),
-                modifier = Modifier
-                    .background(Color(0xAA182226), RoundedCornerShape(10.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-        }
-
-        // Bottom Map Legend
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color(0xE60A1416))
-                    )
-                )
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            LegendItem(color = Color(0xFF00E5FF), label = "BRT")
-            LegendItem(color = Color(0xFFE040FB), label = "TER")
-            LegendItem(color = Color(0xFF00E676), label = "DDD")
-            LegendItem(color = Color(0xFFFFD54F), label = "Car Rapide")
-            LegendItem(color = Color(0xFFFF7043), label = "Taxi")
-        }
+private fun List<VehicleRealtime>.toLeafletJson(): String = JSONArray().apply {
+    forEach { vehicle ->
+        put(org.json.JSONObject().apply {
+            put("id", vehicle.id)
+            put("line", vehicle.lineCode)
+            put("number", vehicle.vehicleNumber)
+            put("category", vehicle.category.label)
+            put("lat", vehicle.latitude)
+            put("lng", vehicle.longitude)
+            put("heading", vehicle.heading)
+        })
     }
-}
-
-@Composable
-private fun LegendItem(color: Color, label: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(7.dp)
-                .background(color, CircleShape)
-        )
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            color = Color(0xFFCFD8DC),
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-// Convert Lat/Lng of Dakar region (approx 14.65N to 14.80N, -17.52W to -17.30W) to 2D Canvas space
-private fun mapCoordsToCanvas(lat: Double, lng: Double, width: Float, height: Float): Pair<Float, Float> {
-    val minLat = 14.65
-    val maxLat = 14.79
-    val minLng = -17.53
-    val maxLng = -17.30
-
-    val normX = ((lng - minLng) / (maxLng - minLng)).coerceIn(0.0, 1.0).toFloat()
-    val normY = (1.0 - (lat - minLat) / (maxLat - minLat)).coerceIn(0.0, 1.0).toFloat()
-
-    val x = normX * width
-    val y = normY * height
-    return Pair(x, y)
-}
+}.toString()
 
 /**
  * Detailed card showing active vehicle information with instant ticket purchase and WhatsApp share.

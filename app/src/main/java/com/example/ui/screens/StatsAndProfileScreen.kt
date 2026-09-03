@@ -90,6 +90,7 @@ fun StatsAndProfileScreen(
     val passes by viewModel.passes.collectAsStateWithLifecycle()
     val selectedLanguage by viewModel.selectedLanguage.collectAsStateWithLifecycle()
     val isSpeaking by viewModel.isSpeaking.collectAsStateWithLifecycle()
+    val dataSaverEnabled by viewModel.dataSaverEnabled.collectAsStateWithLifecycle()
 
     var whatsappAlertsEnabled by remember { mutableStateOf(true) }
     var smartReroutingEnabled by remember { mutableStateOf(true) }
@@ -215,6 +216,34 @@ fun StatsAndProfileScreen(
             }
         }
 
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth().testTag("card_accessibility_settings"),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = HighDensitySurface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, HighDensitySlate200)
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Économie de données", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = HighDensitySlate900)
+                            Text("Réduit le chargement des tuiles cartographiques en EDGE/3G", style = MaterialTheme.typography.bodySmall, color = HighDensitySlate500)
+                        }
+                        Switch(
+                            checked = dataSaverEnabled,
+                            onCheckedChange = viewModel::setDataSaverEnabled,
+                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = HighDensityIndigo)
+                        )
+                    }
+                    Text(
+                        text = if (viewModel.nfcPassRechargeAvailable) "Recharge NFC disponible sur cet appareil" else "Recharge NFC indisponible sur cet appareil",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (viewModel.nfcPassRechargeAvailable) HighDensityLiveGreen else HighDensitySlate500
+                    )
+                }
+            }
+        }
+
         // Stats Highlights Grid
         item {
             Card(
@@ -234,7 +263,7 @@ fun StatsAndProfileScreen(
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         StatTile(
-                            title = "Temps Économisé",
+                            title = "Temps économisé",
                             value = "${estimatedTimeSavedMinutes / 60}h ${estimatedTimeSavedMinutes % 60}m",
                             subtitle = "grâce aux couloirs BRT & alertes",
                             icon = Icons.Default.Timer,
@@ -242,7 +271,7 @@ fun StatsAndProfileScreen(
                             modifier = Modifier.weight(1f)
                         )
                         StatTile(
-                            title = "Économies Réalisées",
+                            title = "Économies réalisées",
                             value = "$financialSavingsCfa F",
                             subtitle = "vs taxi urbain classique",
                             icon = Icons.Default.Savings,
@@ -263,7 +292,7 @@ fun StatsAndProfileScreen(
                             modifier = Modifier.weight(1f)
                         )
                         StatTile(
-                            title = "CO₂ Évité",
+                            title = "CO₂ évité",
                             value = "${String.format("%.1f", carbonSavedKg)} kg",
                             subtitle = "impact écologique vert",
                             icon = Icons.Default.Co2,

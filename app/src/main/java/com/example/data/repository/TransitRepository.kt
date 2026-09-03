@@ -14,6 +14,7 @@ import com.example.data.model.TrafficAlert
 import com.example.data.model.TransportCategory
 import com.example.data.model.TransportLineInfo
 import com.example.data.model.VehicleRealtime
+import com.example.data.ticket.OfflineQrTokenService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -31,7 +32,8 @@ import kotlin.random.Random
 class TransitRepository(
     private val ticketDao: TicketDao,
     private val reportDao: CitizenReportDao,
-    private val passDao: PassDao
+    private val passDao: PassDao,
+    private val offlineQrTokenService: OfflineQrTokenService? = null
 ) {
     val allTickets: Flow<List<TicketEntity>> = ticketDao.getAllTickets()
     val allReports: Flow<List<CitizenReportEntity>> = reportDao.getAllReports()
@@ -450,7 +452,10 @@ class TransitRepository(
         paymentMethod: String
     ): TicketEntity {
         val ticketNumber = "SN-${category.name.take(3)}-${Random.nextInt(1000, 9999)}"
-        val qrData = "SUNUYOON:${ticketNumber}:${System.currentTimeMillis()}:${fareCfa}"
+        // The encrypted token carries its own 15-minute expiry for offline validation.
+        val issuedAt = System.currentTimeMillis()
+        val qrData = offlineQrTokenService?.generate(ticketNumber, fareCfa, issuedAt)
+            ?: "SUNUYOON:${ticketNumber}:${issuedAt}:${fareCfa}"
         val ticket = TicketEntity(
             ticketNumber = ticketNumber,
             lineCode = lineCode,
@@ -459,7 +464,7 @@ class TransitRepository(
             destination = destination,
             fareCfa = fareCfa,
             paymentMethod = paymentMethod,
-            timestamp = System.currentTimeMillis(),
+            timestamp = issuedAt,
             isValidated = false,
             qrCodeData = qrData
         )
@@ -467,8 +472,12 @@ class TransitRepository(
         return ticket.copy(id = id.toInt())
     }
 
-    suspend fun validateTicket(ticketId: Int) {
+    suspend fun validateTicket(ticketId: Int): Boolean {
+        val ticket = ticketDao.getTicket(ticketId) ?: return false
+        val isValid = offlineQrTokenService?.consume(ticket.qrCodeData) ?: true
+        if (!isValid || ticket.isValidated) return false
         ticketDao.markValidated(ticketId)
+        return true
     }
 
     // Post citizen report

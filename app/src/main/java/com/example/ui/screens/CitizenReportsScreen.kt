@@ -150,12 +150,11 @@ fun CitizenReportsScreen(
                             color = HighDensitySlate900
                         )
                         Text(
-                            text = "En direct de Dakar • Sauvegardé en local (Room DB)",
+                            text = "En direct de Dakar",
                             style = MaterialTheme.typography.bodySmall,
                             color = HighDensitySlate500
                         )
                     }
-
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = HighDensityIndigoLight,
@@ -169,6 +168,25 @@ fun CitizenReportsScreen(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                         )
                     }
+                }
+            }
+
+            item {
+                Button(
+                    onClick = {
+                        runCatching {
+                            context.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL).apply {
+                                data = android.net.Uri.parse("tel:112")
+                            })
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().testTag("btn_emergency_sos"),
+                    colors = ButtonDefaults.buttonColors(containerColor = HighDensityAlertRed),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Security, contentDescription = "Appeler les secours", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("SOS • Appeler les secours", fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -536,7 +554,7 @@ private fun CitizenReportCard(
 
                 // Severity Badge
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(6.dp),
                     color = when (report.severity) {
                         "Critique" -> HighDensityAlertBg
                         "Important" -> Color(0xFFFEF3C7)
@@ -560,7 +578,7 @@ private fun CitizenReportCard(
                         },
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }

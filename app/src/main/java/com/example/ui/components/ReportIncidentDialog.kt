@@ -209,7 +209,7 @@ fun ReportIncidentDialog(
                                 color = HighDensitySlate900
                             )
                             Text(
-                                text = "En direct • Enregistré dans Room DB",
+                                text = "En direct de Dakar",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = HighDensitySlate500
                             )
