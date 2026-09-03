@@ -10,6 +10,12 @@ Backend minimal sécurisé pour les comptes, les tickets, les paiements et les d
 4. Exécuter `db/schema.sql` dans la console SQL du fournisseur.
 5. Vérifier `GET /api/health` : la réponse doit indiquer `database: ready`.
 
+Pour produire l'APK avec l'URL Vercel de l'API :
+
+```powershell
+.\gradlew.bat :app:assembleDebug -PterangaApiUrl=https://votre-api.vercel.app/
+```
+
 Ne jamais committer `POSTGRES_URL`, `JWT_SECRET` ou des clés d’opérateurs de paiement.
 
 ## Démarrage

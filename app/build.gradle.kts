@@ -19,6 +19,8 @@ android {
     targetSdk = 36
     versionCode = 1
     versionName = "1.0"
+    val apiUrl = providers.gradleProperty("terangaApiUrl").orElse("https://api.teranga-moov.sn/").get()
+    buildConfigField("String", "TERANGA_API_URL", "\"$apiUrl\"")
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -60,6 +62,34 @@ android {
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true
+  }
+}
+
+tasks.register("renameDebugApk") {
+  notCompatibleWithConfigurationCache("Renames the final APK output after the Android build")
+  dependsOn("assembleDebug")
+  doLast {
+    val apkDirectory = layout.buildDirectory.dir("outputs/apk/debug").get().asFile
+    val defaultApk = apkDirectory.resolve("app-debug.apk")
+    val projectApk = apkDirectory.resolve("Teranga-Moov-debug.apk")
+    if (defaultApk.exists()) {
+      defaultApk.copyTo(projectApk, overwrite = true)
+      defaultApk.delete()
+    }
+  }
+}
+
+tasks.register("renameReleaseApk") {
+  notCompatibleWithConfigurationCache("Renames the final APK output after the Android build")
+  dependsOn("assembleRelease")
+  doLast {
+    val apkDirectory = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+    val defaultApk = apkDirectory.resolve("app-release.apk")
+    val projectApk = apkDirectory.resolve("Teranga-Moov-release.apk")
+    if (defaultApk.exists()) {
+      defaultApk.copyTo(projectApk, overwrite = true)
+      defaultApk.delete()
+    }
   }
 }
 

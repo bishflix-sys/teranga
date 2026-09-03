@@ -22,6 +22,8 @@ import com.example.data.repository.LanguagePreferencesRepository
 import com.example.data.repository.TransitSettingsRepository
 import com.example.data.repository.TransitRepository
 import com.example.data.nfc.NfcPassRechargeService
+import com.example.data.remote.BackendHealth
+import com.example.data.remote.TerangaApiClient
 import com.example.data.ticket.OfflineQrTokenService
 import com.example.ui.util.VoiceAnnouncer
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,6 +74,9 @@ class TransitViewModel(application: Application) : AndroidViewModel(application)
     private val settingsRepository = TransitSettingsRepository(application)
     val dataSaverEnabled: StateFlow<Boolean> = settingsRepository.dataSaverEnabled
     val nfcPassRechargeAvailable = NfcPassRechargeService(application).isAvailable
+    private val _backendHealth = MutableStateFlow<BackendHealth>(BackendHealth.Unconfigured)
+    val backendHealth: StateFlow<BackendHealth> = _backendHealth.asStateFlow()
+    private val apiClient = TerangaApiClient(com.example.BuildConfig.TERANGA_API_URL)
     private val _userLocation = MutableStateFlow<UserLocation?>(null)
     val userLocation: StateFlow<UserLocation?> = _userLocation.asStateFlow()
 
@@ -135,6 +140,9 @@ class TransitViewModel(application: Application) : AndroidViewModel(application)
             repository.checkAndSeedInitialData()
         }
         repository.startRealtimeSimulation(viewModelScope)
+        viewModelScope.launch {
+            _backendHealth.value = apiClient.checkHealth()
+        }
     }
 
     fun selectTab(tab: TransitTab) {
