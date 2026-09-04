@@ -27,6 +27,18 @@ Le projet est organisé en deux modules :
 - **Application Android** : interface Jetpack Compose, carte interactive, données locales Room et prise en charge multilingue.
 - **API backend** : routes Node.js déployables sur Vercel, authentification, tickets, paiements et données temps réel.
 
+## 📌 État du projet
+
+| Domaine | État |
+| --- | --- |
+| Application Android | ✅ Fonctionnelle en développement |
+| Carte et itinéraires | ✅ Intégrés |
+| Authentification | ✅ Disponible côté API |
+| Tickets QR | ✅ Disponible avec vérification locale |
+| Paiements Mobile Money | 🚧 Mode simulation / intégration opérateur à finaliser |
+| Notifications push | 🚧 Prévu |
+| Publication Google Play | 🚧 Prévue |
+
 ## ✨ Fonctionnalités
 
 | Icône | Fonction | Description |
@@ -128,6 +140,23 @@ Les routes principales sont :
 
 Le mode paiement est désactivé par défaut avec `PAYMENTS_MODE=disabled`.
 
+### Exemple de vérification de santé
+
+Avec l’API lancée localement sur le port `3000` :
+
+```powershell
+Invoke-RestMethod -Uri http://localhost:3000/api/health -Method Get
+```
+
+Réponse attendue lorsque la base de données est disponible :
+
+```json
+{
+  "status": "ok",
+  "database": "ready"
+}
+```
+
 ## ☁️ Déploiement backend
 
 1. Importer le dossier `backend` dans Vercel en tant que **Root Directory**.
@@ -164,6 +193,18 @@ Avant toute mise en production :
 
 ⚠️ Ne jamais versionner `POSTGRES_URL`, `JWT_SECRET`, les clés Mobile Money, `google-services.json` ou un fichier `.env` contenant des secrets.
 
+## 🗺️ Roadmap
+
+- [x] Application Android initiale
+- [x] Carte interactive et suivi des transports
+- [x] Authentification et tickets QR
+- [x] API serverless déployable sur Vercel
+- [ ] Connecter les paiements Wave, Orange Money et Free Money en production
+- [ ] Ajouter les notifications push et les alertes personnalisées
+- [ ] Remplacer les stockages mémoire par PostgreSQL/Redis sur tous les flux
+- [ ] Ajouter les tests d’intégration backend et les tests UI Android
+- [ ] Publier l’application sur Google Play
+
 ## 🌐 Langues ciblées
 
 L’application prévoit une base multilingue à enrichir avec des linguistes et locuteurs natifs : français, wolof, pulaar, sérère, mandinka, soninké, diola, balante, mancagne, noon, manjaque, saafi, bassari, bayot, bédik, ndut, palor, léhar, badiaranké, baïnouk et jalonké.
@@ -174,6 +215,13 @@ L’application prévoit une base multilingue à enrichir avec des linguistes et
 2. Effectuer les changements et ajouter les tests nécessaires.
 3. Vérifier `./gradlew.bat test` et `./gradlew.bat assembleDebug`.
 4. Ouvrir une Pull Request avec le contexte, les captures utiles et les étapes de vérification.
+
+### 🧩 Dépannage rapide
+
+- **Le build release demande une clé** : définir `KEYSTORE_PATH`, `STORE_PASSWORD` et `KEY_PASSWORD`, ou utiliser le `debug.keystore` prévu pour les builds locaux.
+- **L’API refuse les requêtes authentifiées** : vérifier que `JWT_SECRET` contient au moins 32 caractères.
+- **La base est indisponible** : vérifier `POSTGRES_URL`, le schéma `backend/db/schema.sql` et la réponse de `/api/health`.
+- **La carte reste vide** : vérifier la connexion Internet et l’accès aux tuiles CARTO/OpenStreetMap.
 
 ## 📄 Licence
 
