@@ -27,6 +27,40 @@ Le projet est organisé en deux modules :
 - **Application Android** : interface Jetpack Compose, carte interactive, données locales Room et prise en charge multilingue.
 - **API backend** : routes Node.js déployables sur Vercel, authentification, tickets, paiements et données temps réel.
 
+## 📱 Aperçu de l’application
+
+Les captures suivantes présentent les principaux écrans de Téranga Moov :
+
+<table>
+  <tr>
+    <td align="center"><strong>Onboarding</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.35%20%281%29.jpeg" alt="Écran d’onboarding" width="220"></td>
+    <td align="center"><strong>Création de compte</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.36%20%281%29.jpeg" alt="Écran de création de compte" width="220"></td>
+    <td align="center"><strong>Accueil</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.36%20%282%29.jpeg" alt="Écran d’accueil" width="220"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Transports à proximité</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.36%20%283%29.jpeg" alt="Écran des transports à proximité" width="220"></td>
+    <td align="center"><strong>Itinéraires</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.36%20%284%29.jpeg" alt="Écran des itinéraires" width="220"></td>
+    <td align="center"><strong>Onboarding final</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.36.jpeg" alt="Écran final de l’onboarding" width="220"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Mon espace</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.38%20%281%29.jpeg" alt="Écran Mon espace" width="220"></td>
+    <td align="center"><strong>Alertes citoyennes</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.38%20%282%29.jpeg" alt="Écran des alertes citoyennes" width="220"></td>
+    <td align="center"><strong>Tickets et Pass</strong><br><img src="app/src/main/res/drawable/imageapp/WhatsApp%20Image%202026-09-04%20at%2021.59.38.jpeg" alt="Écran des tickets et pass" width="220"></td>
+  </tr>
+</table>
+
+## 📌 État du projet
+
+| Domaine | État |
+| --- | --- |
+| Application Android | ✅ Fonctionnelle en développement |
+| Carte et itinéraires | ✅ Intégrés |
+| Authentification | ✅ Disponible côté API |
+| Tickets QR | ✅ Disponible avec vérification locale |
+| Paiements Mobile Money | 🚧 Mode simulation / intégration opérateur à finaliser |
+| Notifications push | 🚧 Prévu |
+| Publication Google Play | 🚧 Prévue |
+
 ## ✨ Fonctionnalités
 
 | Icône | Fonction | Description |
@@ -128,6 +162,23 @@ Les routes principales sont :
 
 Le mode paiement est désactivé par défaut avec `PAYMENTS_MODE=disabled`.
 
+### Exemple de vérification de santé
+
+Avec l’API lancée localement sur le port `3000` :
+
+```powershell
+Invoke-RestMethod -Uri http://localhost:3000/api/health -Method Get
+```
+
+Réponse attendue lorsque la base de données est disponible :
+
+```json
+{
+  "status": "ok",
+  "database": "ready"
+}
+```
+
 ## ☁️ Déploiement backend
 
 1. Importer le dossier `backend` dans Vercel en tant que **Root Directory**.
@@ -164,6 +215,18 @@ Avant toute mise en production :
 
 ⚠️ Ne jamais versionner `POSTGRES_URL`, `JWT_SECRET`, les clés Mobile Money, `google-services.json` ou un fichier `.env` contenant des secrets.
 
+## 🗺️ Roadmap
+
+- [x] Application Android initiale
+- [x] Carte interactive et suivi des transports
+- [x] Authentification et tickets QR
+- [x] API serverless déployable sur Vercel
+- [ ] Connecter les paiements Wave, Orange Money et Free Money en production
+- [ ] Ajouter les notifications push et les alertes personnalisées
+- [ ] Remplacer les stockages mémoire par PostgreSQL/Redis sur tous les flux
+- [ ] Ajouter les tests d’intégration backend et les tests UI Android
+- [ ] Publier l’application sur Google Play
+
 ## 🌐 Langues ciblées
 
 L’application prévoit une base multilingue à enrichir avec des linguistes et locuteurs natifs : français, wolof, pulaar, sérère, mandinka, soninké, diola, balante, mancagne, noon, manjaque, saafi, bassari, bayot, bédik, ndut, palor, léhar, badiaranké, baïnouk et jalonké.
@@ -174,6 +237,13 @@ L’application prévoit une base multilingue à enrichir avec des linguistes et
 2. Effectuer les changements et ajouter les tests nécessaires.
 3. Vérifier `./gradlew.bat test` et `./gradlew.bat assembleDebug`.
 4. Ouvrir une Pull Request avec le contexte, les captures utiles et les étapes de vérification.
+
+### 🧩 Dépannage rapide
+
+- **Le build release demande une clé** : définir `KEYSTORE_PATH`, `STORE_PASSWORD` et `KEY_PASSWORD`, ou utiliser le `debug.keystore` prévu pour les builds locaux.
+- **L’API refuse les requêtes authentifiées** : vérifier que `JWT_SECRET` contient au moins 32 caractères.
+- **La base est indisponible** : vérifier `POSTGRES_URL`, le schéma `backend/db/schema.sql` et la réponse de `/api/health`.
+- **La carte reste vide** : vérifier la connexion Internet et l’accès aux tuiles CARTO/OpenStreetMap.
 
 ## 📄 Licence
 
