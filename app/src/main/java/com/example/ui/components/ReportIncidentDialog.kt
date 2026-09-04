@@ -71,6 +71,7 @@ import com.example.ui.theme.HighDensityAlertRed
 import com.example.ui.theme.HighDensityAlertText
 import com.example.ui.theme.HighDensityIndigo
 import com.example.ui.theme.HighDensityIndigoLight
+import com.example.ui.theme.terangaOutlinedTextFieldColors
 import com.example.ui.theme.HighDensitySlate100
 import com.example.ui.theme.HighDensitySlate200
 import com.example.ui.theme.HighDensitySlate400
@@ -78,6 +79,7 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaPattern
 
 /**
  * Modern Material 3 Dialog for submitting real-time incident reports
@@ -164,6 +166,7 @@ fun ReportIncidentDialog(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .heightIn(max = 680.dp)
+                .terangaPattern(alpha = 0.04f)
                 .testTag("dialog_report_incident"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = HighDensitySurface),
@@ -375,12 +378,7 @@ fun ReportIncidentDialog(
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = HighDensityIndigo,
-                        unfocusedBorderColor = HighDensitySlate200,
-                        focusedContainerColor = HighDensitySurface,
-                        unfocusedContainerColor = HighDensitySurface
-                    ),
+                    colors = terangaOutlinedTextFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_incident_location")
@@ -448,12 +446,7 @@ fun ReportIncidentDialog(
                     minLines = 2,
                     maxLines = 4,
                     shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = HighDensityIndigo,
-                        unfocusedBorderColor = HighDensitySlate200,
-                        focusedContainerColor = HighDensitySurface,
-                        unfocusedContainerColor = HighDensitySurface
-                    ),
+                    colors = terangaOutlinedTextFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_incident_description")
@@ -501,12 +494,7 @@ fun ReportIncidentDialog(
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = HighDensityIndigo,
-                            unfocusedBorderColor = HighDensitySlate200,
-                            focusedContainerColor = HighDensitySurface,
-                            unfocusedContainerColor = HighDensitySurface
-                        ),
+                        colors = terangaOutlinedTextFieldColors(),
                         modifier = Modifier
                             .weight(1f)
                             .testTag("input_incident_author")

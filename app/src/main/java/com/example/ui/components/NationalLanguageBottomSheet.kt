@@ -51,6 +51,7 @@ import com.example.data.model.NationalLanguage
 import com.example.ui.theme.HighDensityIndigo
 import com.example.ui.theme.HighDensityIndigoBorder
 import com.example.ui.theme.HighDensityIndigoLight
+import com.example.ui.theme.terangaOutlinedTextFieldColors
 import com.example.ui.theme.HighDensityLiveGreen
 import com.example.ui.theme.HighDensitySlate100
 import com.example.ui.theme.HighDensitySlate200
@@ -59,6 +60,7 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaPattern
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,6 +104,7 @@ fun NationalLanguageBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .terangaPattern(alpha = 0.04f)
                 .padding(horizontal = 18.dp)
                 .padding(bottom = 32.dp)
                 .testTag("sheet_national_languages")
@@ -173,12 +176,7 @@ fun NationalLanguageBottomSheet(
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = HighDensityIndigo,
-                    unfocusedBorderColor = HighDensitySlate200,
-                    focusedContainerColor = HighDensitySlate100,
-                    unfocusedContainerColor = HighDensitySlate100
-                )
+                colors = terangaOutlinedTextFieldColors()
             )
 
             Spacer(modifier = Modifier.height(14.dp))

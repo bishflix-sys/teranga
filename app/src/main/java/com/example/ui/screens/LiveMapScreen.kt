@@ -78,6 +78,7 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaPattern
 import com.example.ui.theme.ModeBrtBg
 import com.example.ui.theme.ModeBrtIndigo
 import com.example.ui.theme.ModeCarRapideBg
@@ -114,6 +115,7 @@ fun LiveMapScreen(
         modifier = modifier
             .fillMaxSize()
             .background(HighDensityBg)
+            .terangaPattern(alpha = 0.05f)
             .testTag("screen_live_map"),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 80.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)

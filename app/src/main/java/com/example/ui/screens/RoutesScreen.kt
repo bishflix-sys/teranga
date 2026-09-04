@@ -81,6 +81,8 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaOutlinedTextFieldColors
+import com.example.ui.theme.terangaPattern
 
 data class ItineraryProposal(
     val title: String,
@@ -144,6 +146,7 @@ fun RoutesScreen(
         modifier = modifier
             .fillMaxSize()
             .background(HighDensityBg)
+            .terangaPattern(alpha = 0.05f)
             .testTag("screen_routes"),
         contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -234,6 +237,7 @@ fun RoutesScreen(
                                 onValueChange = { originInput = it },
                                 label = { Text("Point de départ") },
                                 singleLine = true,
+                                colors = terangaOutlinedTextFieldColors(),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth().testTag("input_itinerary_origin")
                             )
@@ -276,6 +280,7 @@ fun RoutesScreen(
                                 onValueChange = { destinationInput = it },
                                 label = { Text("Destination souhaitée") },
                                 singleLine = true,
+                                colors = terangaOutlinedTextFieldColors(),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth().testTag("input_itinerary_destination")
                             )
@@ -338,6 +343,7 @@ fun RoutesScreen(
                         }
                     },
                     singleLine = true,
+                    colors = terangaOutlinedTextFieldColors(),
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier.fillMaxWidth().testTag("input_search_lines")
                 )
