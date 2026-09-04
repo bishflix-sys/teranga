@@ -82,6 +82,8 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaOutlinedTextFieldColors
+import com.example.ui.theme.terangaPattern
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -115,6 +117,7 @@ fun TicketsAndPassScreen(
         modifier = modifier
             .fillMaxSize()
             .background(HighDensityBg)
+            .terangaPattern(alpha = 0.05f)
             .testTag("screen_tickets_and_pass"),
         contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -662,6 +665,7 @@ private fun SubscribePassDialog(
                     label = { Text("Nom et Prénom du titulaire") },
                     placeholder = { Text("Ex: Awa Diop") },
                     singleLine = true,
+                    colors = terangaOutlinedTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().testTag("input_pass_holder_name")
                 )

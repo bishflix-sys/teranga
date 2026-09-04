@@ -1,6 +1,10 @@
 package com.example.ui.screens
 
 import android.content.Context
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,8 +42,12 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -49,6 +57,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,18 +69,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.TransitViewModel
+import com.example.R
+import com.example.data.repository.UserAccountRepository
 import com.example.ui.theme.HighDensityBg
 import com.example.ui.theme.HighDensityIndigo
 import com.example.ui.theme.HighDensityIndigoBorder
 import com.example.ui.theme.HighDensityIndigoDark
 import com.example.ui.theme.HighDensityIndigoLight
+import com.example.ui.theme.terangaOutlinedTextFieldColors
 import com.example.ui.theme.HighDensityLiveGreen
 import com.example.ui.theme.HighDensitySlate100
 import com.example.ui.theme.HighDensitySlate200
@@ -79,6 +95,7 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaPattern
 
 @Composable
 fun StatsAndProfileScreen(
@@ -86,6 +103,7 @@ fun StatsAndProfileScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val accountRepository = remember { UserAccountRepository(context) }
     val tickets by viewModel.tickets.collectAsStateWithLifecycle()
     val passes by viewModel.passes.collectAsStateWithLifecycle()
     val selectedLanguage by viewModel.selectedLanguage.collectAsStateWithLifecycle()
@@ -94,6 +112,25 @@ fun StatsAndProfileScreen(
 
     var whatsappAlertsEnabled by remember { mutableStateOf(true) }
     var smartReroutingEnabled by remember { mutableStateOf(true) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    var showPinDialog by remember { mutableStateOf(false) }
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var pin by remember { mutableStateOf("") }
+    var accountMessage by remember { mutableStateOf<String?>(null) }
+    var profilePhoto by remember { mutableStateOf(accountRepository.profilePhoto) }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            accountRepository.updateProfilePhoto(it)
+            profilePhoto = it
+        }
+    }
 
     val totalTripsThisMonth = (tickets.size * 3) + 24
     val estimatedTimeSavedMinutes = totalTripsThisMonth * 35 // 35 min saved per trip with BRT/TER & live traffic
@@ -104,6 +141,7 @@ fun StatsAndProfileScreen(
         modifier = modifier
             .fillMaxSize()
             .background(HighDensityBg)
+            .terangaPattern(alpha = 0.05f)
             .testTag("screen_stats_and_profile"),
         contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 88.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -120,6 +158,96 @@ fun StatsAndProfileScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = HighDensitySlate500
             )
+        }
+
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = HighDensitySurface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, HighDensityIndigoBorder)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape)
+                                .background(HighDensityIndigoLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            profilePhoto?.let { uri ->
+                                val bitmap = remember(uri) {
+                                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                                        BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                                    }
+                                }
+                                if (bitmap != null) {
+                                    Image(
+                                        bitmap = bitmap,
+                                        contentDescription = "Photo de profil",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.AddAPhoto,
+                                        contentDescription = "Ajouter une photo de profil",
+                                        tint = HighDensityIndigo,
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                }
+                            } ?: Icon(
+                                imageVector = Icons.Default.AddAPhoto,
+                                contentDescription = "Ajouter une photo de profil",
+                                tint = HighDensityIndigo,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = accountRepository.displayName.ifBlank { "Mon profil" },
+                                fontWeight = FontWeight.Bold,
+                                color = HighDensitySlate900
+                            )
+                            Text(
+                                text = accountRepository.identifier,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = HighDensitySlate500
+                            )
+                        }
+                        OutlinedButton(onClick = { photoPicker.launch(arrayOf("image/*")) }) {
+                            Text("Photo")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = { showPasswordDialog = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Key, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Mot de passe")
+                        }
+                        OutlinedButton(
+                            onClick = { showPinDialog = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Pin, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(if (accountRepository.hasPin) "Modifier PIN" else "Créer PIN")
+                        }
+                    }
+                    accountMessage?.let { message ->
+                        Text(message, color = HighDensityIndigo, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+                    }
+                }
+            }
         }
 
         // Section: Inclusion & 20 Langues Nationales du Sénégal
@@ -473,6 +601,53 @@ fun StatsAndProfileScreen(
                 }
             }
         }
+    }
+
+    if (showPasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { showPasswordDialog = false },
+            title = { Text("Changer le mot de passe") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(currentPassword, { currentPassword = it }, label = { Text("Mot de passe actuel") }, singleLine = true, colors = terangaOutlinedTextFieldColors())
+                    OutlinedTextField(newPassword, { newPassword = it }, label = { Text("Nouveau mot de passe") }, singleLine = true, colors = terangaOutlinedTextFieldColors())
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val updated = accountRepository.updatePassword(currentPassword, newPassword)
+                    accountMessage = if (updated) "Mot de passe mis à jour." else "Vérifiez le mot de passe actuel et utilisez 6 caractères minimum."
+                    currentPassword = ""
+                    newPassword = ""
+                    showPasswordDialog = false
+                }) { Text("Enregistrer") }
+            },
+            dismissButton = { TextButton(onClick = { showPasswordDialog = false }) { Text("Annuler") } }
+        )
+    }
+
+    if (showPinDialog) {
+        AlertDialog(
+            onDismissRequest = { showPinDialog = false },
+            title = { Text("Créer un code PIN") },
+            text = {
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = { value -> pin = value.filter(Char::isDigit).take(4) },
+                    label = { Text("Code à 4 chiffres") },
+                    singleLine = true,
+                    colors = terangaOutlinedTextFieldColors()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    accountMessage = if (accountRepository.setPin(pin)) "Code PIN enregistré." else "Le code doit contenir exactement 4 chiffres."
+                    pin = ""
+                    showPinDialog = false
+                }) { Text("Enregistrer") }
+            },
+            dismissButton = { TextButton(onClick = { showPinDialog = false }) { Text("Annuler") } }
+        )
     }
 }
 

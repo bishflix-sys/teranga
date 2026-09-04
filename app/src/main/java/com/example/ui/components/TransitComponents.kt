@@ -110,6 +110,8 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaOutlinedTextFieldColors
+import com.example.ui.theme.terangaPattern
 import com.example.ui.theme.ModeBrtBg
 import com.example.ui.theme.ModeBrtIndigo
 import com.example.ui.theme.ModeCarRapideBg
@@ -222,7 +224,7 @@ fun TransitLiveMapCanvas(
                 settings.allowFileAccess = true
                 settings.allowContentAccess = false
                 settings.allowFileAccessFromFileURLs = false
-                settings.allowUniversalAccessFromFileURLs = false
+                settings.allowUniversalAccessFromFileURLs = true
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
                         view.evaluateJavascript(
@@ -734,6 +736,7 @@ fun MobilePaymentSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .terangaPattern(alpha = 0.04f)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .testTag("mobile_payment_bottom_sheet"),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -912,6 +915,7 @@ fun MobilePaymentSheet(
                     placeholder = { Text("77 xxx xx xx") },
                     prefix = { Text("+221 ", fontWeight = FontWeight.Bold, color = HighDensityIndigo) },
                     singleLine = true,
+                    colors = terangaOutlinedTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().testTag("input_phone_payment")
                 )
@@ -1058,6 +1062,7 @@ fun AddCitizenReportDialog(
                     onValueChange = { location = it },
                     label = { Text("Lieu précis (ex: Rond-point Patte d'Oie)") },
                     singleLine = true,
+                    colors = terangaOutlinedTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().testTag("input_report_location")
                 )
@@ -1069,6 +1074,7 @@ fun AddCitizenReportDialog(
                     onValueChange = { description = it },
                     label = { Text("Description & conseils d'itinéraire") },
                     maxLines = 3,
+                    colors = terangaOutlinedTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().testTag("input_report_description")
                 )
@@ -1081,6 +1087,7 @@ fun AddCitizenReportDialog(
                     label = { Text("Votre prénom (facultatif)") },
                     placeholder = { Text("Ex: Moussa D.") },
                     singleLine = true,
+                    colors = terangaOutlinedTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 )

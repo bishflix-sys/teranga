@@ -90,6 +90,7 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaPattern
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,6 +121,7 @@ fun MainScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
+            .terangaPattern(alpha = 0.08f)
             .testTag("app_scaffold"),
         containerColor = HighDensityBg,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -253,6 +255,7 @@ fun MainScreen(
             NavigationBar(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .terangaPattern(alpha = 0.2f)
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .border(width = 1.dp, color = HighDensitySlate100)
                     .testTag("main_bottom_nav"),

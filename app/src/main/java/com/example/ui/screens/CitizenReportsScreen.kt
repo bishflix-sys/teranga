@@ -82,6 +82,7 @@ import com.example.ui.theme.HighDensitySlate500
 import com.example.ui.theme.HighDensitySlate700
 import com.example.ui.theme.HighDensitySlate900
 import com.example.ui.theme.HighDensitySurface
+import com.example.ui.theme.terangaPattern
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -129,7 +130,12 @@ fun CitizenReportsScreen(
         else -> reports.filter { it.category.equals(selectedCategoryFilter, ignoreCase = true) }
     }
 
-    Box(modifier = modifier.fillMaxSize().testTag("screen_citizen_reports")) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .terangaPattern(alpha = 0.05f)
+            .testTag("screen_citizen_reports")
+    ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 96.dp),

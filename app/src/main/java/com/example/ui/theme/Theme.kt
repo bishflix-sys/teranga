@@ -9,6 +9,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme =
   darkColorScheme(
@@ -57,6 +62,36 @@ private val LightColorScheme =
   )
 
 @Composable
+fun terangaOutlinedTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+  focusedContainerColor = SurfaceLight,
+  unfocusedContainerColor = SurfaceLight,
+  disabledContainerColor = HighDensitySlate100,
+  errorContainerColor = HighDensityAlertBg,
+  focusedTextColor = OnSurfaceLight,
+  unfocusedTextColor = OnSurfaceLight,
+  disabledTextColor = OnSurfaceVariantLight,
+  errorTextColor = HighDensityAlertText,
+  focusedLabelColor = PrimaryLight,
+  unfocusedLabelColor = OnSurfaceVariantLight,
+  disabledLabelColor = OnSurfaceVariantLight,
+  errorLabelColor = HighDensityAlertText,
+  focusedLeadingIconColor = PrimaryLight,
+  unfocusedLeadingIconColor = OnSurfaceVariantLight,
+  disabledLeadingIconColor = OnSurfaceVariantLight,
+  errorLeadingIconColor = HighDensityAlertText,
+  focusedTrailingIconColor = PrimaryLight,
+  unfocusedTrailingIconColor = OnSurfaceVariantLight,
+  disabledTrailingIconColor = OnSurfaceVariantLight,
+  errorTrailingIconColor = HighDensityAlertText,
+  focusedBorderColor = PrimaryLight,
+  unfocusedBorderColor = OutlineLight,
+  disabledBorderColor = OutlineVariantLight,
+  errorBorderColor = HighDensityAlertRed,
+  cursorColor = PrimaryLight,
+  errorCursorColor = HighDensityAlertRed
+)
+
+@Composable
 fun MyApplicationTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   // Set to false to preserve the high density design theme consistently
@@ -74,5 +109,16 @@ fun MyApplicationTheme(
       else -> LightColorScheme
     }
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+  MaterialTheme(
+    colorScheme = colorScheme,
+    typography = Typography,
+    shapes = Shapes(
+      extraSmall = RoundedCornerShape(10.dp),
+      small = RoundedCornerShape(14.dp),
+      medium = RoundedCornerShape(18.dp),
+      large = RoundedCornerShape(24.dp),
+      extraLarge = RoundedCornerShape(28.dp)
+    ),
+    content = content
+  )
 }

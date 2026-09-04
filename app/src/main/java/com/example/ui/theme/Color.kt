@@ -2,58 +2,61 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// High Density Design Theme Palette
-// Canvas & Slate Neutrals
-val HighDensityBg = Color(0xFFFDFCFB)
-val HighDensitySurface = Color(0xFFFFFFFF)
-val HighDensitySlate50 = Color(0xFFF8FAFC)
-val HighDensitySlate100 = Color(0xFFF1F5F9)
-val HighDensitySlate200 = Color(0xFFE2E8F0)
-val HighDensitySlate300 = Color(0xFFCBD5E1)
-val HighDensitySlate400 = Color(0xFF94A3B8)
-val HighDensitySlate500 = Color(0xFF64748B)
-val HighDensitySlate700 = Color(0xFF334155)
-val HighDensitySlate900 = Color(0xFF0F172A)
+val TerangaGreen = Color(0xFF118C4A)
+val TerangaYellow = Color(0xFFFEC100)
+val SenegalRed = Color(0xFFE6392B)
+val EarthBrown = Color(0xFF8B5E34)
+val SandBeige = Color(0xFFFFF6E6)
 
-// Primary Indigo Accents
-val HighDensityIndigo = Color(0xFF4F46E5)
-val HighDensityIndigoDark = Color(0xFF4338CA)
-val HighDensityIndigoLight = Color(0xFFEEF2FF)
-val HighDensityIndigoBorder = Color(0xFFC7D2FE)
-val HighDensityIndigoGlow = Color(0x334F46E5)
+val HighDensityBg = SandBeige
+val HighDensitySurface = Color(0xFFFFFCF7)
+val HighDensitySlate50 = Color(0xFFFFFAF2)
+val HighDensitySlate100 = Color(0xFFFFEBC2)
+val HighDensitySlate200 = Color(0xFFE4CFAF)
+val HighDensitySlate300 = Color(0xFFC9AA83)
+val HighDensitySlate400 = Color(0xFF9B8063)
+val HighDensitySlate500 = Color(0xFF6E5742)
+val HighDensitySlate700 = Color(0xFF4A3524)
+val HighDensitySlate900 = Color(0xFF2A1D14)
+
+val HighDensityIndigo = TerangaGreen
+val HighDensityIndigoDark = Color(0xFF086331)
+val HighDensityIndigoLight = Color(0xFFDDF3E7)
+val HighDensityIndigoBorder = Color(0xFF8CCBA7)
+val HighDensityIndigoGlow = Color(0x33118C4A)
 
 // Luxury Carbon Card
-val HighDensityCardBg = Color(0xFF1A1C1E)
-val HighDensityCardGlow = Color(0x336366F1)
+val HighDensityCardBg = Color(0xFF0B6E3B)
+val HighDensityCardGlow = Color(0x33FEC100)
 
 // Live Status & Alerts
-val HighDensityLiveGreen = Color(0xFF22C55E)
-val HighDensityLiveGreenBg = Color(0xFFECFDF5)
-val HighDensityAlertRed = Color(0xFFEF4444)
-val HighDensityAlertBg = Color(0xFFFEF2F2)
-val HighDensityAlertBorder = Color(0xFFFCA5A5)
-val HighDensityAlertText = Color(0xFFB91C1C)
+val HighDensityLiveGreen = TerangaGreen
+val HighDensityLiveGreenBg = Color(0xFFDDF3E7)
+val HighDensityAlertRed = SenegalRed
+val HighDensityAlertBg = Color(0xFFFFE2DE)
+val HighDensityAlertBorder = Color(0xFFF0A39B)
+val HighDensityAlertText = Color(0xFF9F241B)
 
 // Senegalese Transit Mode Identifiers (High Density)
-val ModeDddBlue = Color(0xFF2563EB)
-val ModeDddBg = Color(0xFFDBEAFE)
-val ModeCarRapideOrange = Color(0xFFEA580C)
-val ModeCarRapideBg = Color(0xFFFFEDD5)
-val ModeBrtIndigo = Color(0xFF4F46E5)
-val ModeBrtBg = Color(0xFFEEF2FF)
-val ModeTerCyan = Color(0xFF0891B2)
-val ModeTerBg = Color(0xFFE0F2FE)
-val ModeTataAmber = Color(0xFFD97706)
-val ModeTataBg = Color(0xFFFEF3C7)
-val ModeTaxiBrown = Color(0xFFC2410C)
-val ModeTaxiBg = Color(0xFFFFEDD5)
+val ModeDddBlue = Color(0xFF176B78)
+val ModeDddBg = Color(0xFFDDF2F0)
+val ModeCarRapideOrange = EarthBrown
+val ModeCarRapideBg = Color(0xFFF3E5D5)
+val ModeBrtIndigo = TerangaGreen
+val ModeBrtBg = HighDensityIndigoLight
+val ModeTerCyan = Color(0xFF087B58)
+val ModeTerBg = Color(0xFFDDF3E9)
+val ModeTataAmber = Color(0xFF9A6900)
+val ModeTataBg = Color(0xFFFFF0C2)
+val ModeTaxiBrown = EarthBrown
+val ModeTaxiBg = Color(0xFFF3E5D5)
 
 // Local Mobile Money
 val SunuWaveBlue = Color(0xFF1E88E5)
 val SunuOrangeMoney = Color(0xFFFF6D00)
 val SunuFreeMoney = Color(0xFFE53935)
-val SunuGreenPrimary = Color(0xFF4F46E5) // Mapped to primary brand indigo
-val SunuGoldSecondary = Color(0xFFD97706)
+val SunuGreenPrimary = TerangaGreen
+val SunuGoldSecondary = TerangaYellow
 
 // Material 3 Tokens (Light)
 val PrimaryLight = HighDensityIndigo
@@ -80,27 +83,27 @@ val OutlineLight = HighDensitySlate200
 val OutlineVariantLight = HighDensitySlate100
 
 // Material 3 Tokens (Dark)
-val PrimaryDark = Color(0xFF818CF8)
-val OnPrimaryDark = Color(0xFF1E1B4B)
-val PrimaryContainerDark = Color(0xFF312E81)
-val OnPrimaryContainerDark = Color(0xFFE0E7FF)
+val PrimaryDark = Color(0xFF7ED6A3)
+val OnPrimaryDark = Color(0xFF00391B)
+val PrimaryContainerDark = Color(0xFF075B31)
+val OnPrimaryContainerDark = Color(0xFFB9F0CA)
 
 val SecondaryDark = HighDensitySlate300
 val OnSecondaryDark = HighDensitySlate900
 val SecondaryContainerDark = HighDensitySlate700
 val OnSecondaryContainerDark = HighDensitySlate100
 
-val TertiaryDark = Color(0xFF4ADE80)
-val OnTertiaryDark = Color(0xFF052E16)
-val TertiaryContainerDark = Color(0xFF14532D)
-val OnTertiaryContainerDark = Color(0xFFBBF7D0)
+val TertiaryDark = TerangaYellow
+val OnTertiaryDark = Color(0xFF402900)
+val TertiaryContainerDark = Color(0xFF725000)
+val OnTertiaryContainerDark = Color(0xFFFFDFA0)
 
-val BackgroundDark = Color(0xFF0F172A)
-val SurfaceDark = Color(0xFF1E293B)
-val SurfaceVariantDark = Color(0xFF334155)
-val OnSurfaceDark = Color(0xFFF8FAFC)
-val OnSurfaceVariantDark = Color(0xFF94A3B8)
-val OutlineDark = Color(0xFF475569)
-val OutlineVariantDark = Color(0xFF334155)
+val BackgroundDark = Color(0xFF17251D)
+val SurfaceDark = Color(0xFF21352A)
+val SurfaceVariantDark = Color(0xFF355442)
+val OnSurfaceDark = SandBeige
+val OnSurfaceVariantDark = Color(0xFFC7D9CA)
+val OutlineDark = Color(0xFF5C8066)
+val OutlineVariantDark = Color(0xFF355442)
 
 

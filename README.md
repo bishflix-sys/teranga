@@ -86,6 +86,8 @@ Pour Android, fournir idéalement des exports carrés aux densités suivantes : 
 .\gradlew.bat test
 ```
 
+Sans `KEYSTORE_PATH`, le build local utilise `debug.keystore` pour signer l'APK release. Pour une publication, fournir `KEYSTORE_PATH`, `STORE_PASSWORD` et `KEY_PASSWORD` dans l'environnement.
+
 Vérifier également le backend :
 
 ```powershell
