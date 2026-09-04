@@ -1,133 +1,184 @@
 # Téranga Moov
 
-Téranga Moov est une super-app citoyenne de mobilité au Sénégal. Elle aide les usagers à suivre les transports, payer leurs trajets, recevoir des alertes fiables et participer à l'amélioration de la mobilité locale.
+<p align="center">
+  <img src="app/src/main/res/drawable/img_app_icon.jpg" alt="Logo Téranga Moov" width="120">
+</p>
 
-## Vision
+<h3 align="center">La mobilité sénégalaise, plus simple, plus fiable et plus inclusive.</h3>
 
-La plateforme combine géolocalisation en temps réel, notifications intelligentes, paiement numérique et signalement citoyen. Elle est conçue pour réduire l'attente inutile, faciliter les déplacements et rester accessible aux différentes communautés linguistiques du Sénégal.
+<p align="center">
+  Application Android de mobilité citoyenne avec suivi des transports, alertes, tickets numériques et signalements communautaires.
+</p>
 
-## Fonctionnalités
+<p align="center">
+  <img src="https://img.shields.io/badge/Android-24%2B-3DDC84?logo=android&logoColor=white" alt="Android 24+">
+  <img src="https://img.shields.io/badge/Kotlin-2.2.10-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin 2.2.10">
+  <img src="https://img.shields.io/badge/Jetpack%20Compose-UI-4285F4?logo=jetpackcompose&logoColor=white" alt="Jetpack Compose">
+  <img src="https://img.shields.io/badge/Node.js-API-339933?logo=node.js&logoColor=white" alt="Node.js API">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="Licence MIT">
+</p>
 
-- Carte interactive Leaflet centrée sur Dakar avec véhicules en temps réel et effet de perspective 3D.
-- Suivi des bus, BRT, TER, cars rapides et taxis.
-- Alertes sur les retards, embouteillages, incidents et itinéraires alternatifs.
-- Tickets, abonnements et paiements numériques avec Wave, Orange Money et Free Money.
-- Signalements citoyens avec catégories d'incidents et partage WhatsApp.
-- Pass numériques pour étudiants, travailleurs et usagers réguliers.
-- Statistiques personnalisées sur les trajets et les économies réalisées.
-- Lecture vocale et interface multilingue.
-- Recentrage GPS « Autour de moi », bouton SOS et mode économie de données.
-- QR de tickets chiffrés hors ligne, expiration de 15 minutes et anti-réutilisation locale.
-- Sélecteur TER, BRT, DDD, AFTU et Taxi avec tarification TER par zone ou classe.
+## 🌍 À propos
 
-## Architecture
+Téranga Moov est une super-app conçue pour améliorer les déplacements quotidiens au Sénégal. Elle rassemble dans une même expérience les informations de transport, les itinéraires, les paiements, les tickets et la participation citoyenne.
 
-Le dépôt contient deux parties :
+Le projet est organisé en deux modules :
 
-- `app/` : application Android Kotlin/Jetpack Compose, Room, WebView Leaflet et Android Keystore.
-- `backend/` : API Node.js déployable sur Vercel avec Neon PostgreSQL.
+- **Application Android** : interface Jetpack Compose, carte interactive, données locales Room et prise en charge multilingue.
+- **API backend** : routes Node.js déployables sur Vercel, authentification, tickets, paiements et données temps réel.
 
-Le backend expose notamment `GET /api/health`, `POST /api/auth/register`, `POST /api/auth/login`, ainsi que les routes de paiement et de vérification de tickets documentées dans [backend/README.md](backend/README.md).
+## ✨ Fonctionnalités
 
-## Business Model Canvas
+| Icône | Fonction | Description |
+| --- | --- | --- |
+| 🗺️ | Carte en temps réel | Véhicules, arrêts, itinéraires et transports disponibles autour de Dakar. |
+| 🚌 | Mobilité multimodale | Suivi des bus, BRT, TER, cars rapides et taxis. |
+| 🔔 | Alertes utiles | Retards, incidents, embouteillages et itinéraires alternatifs. |
+| 🎫 | Tickets numériques | QR chiffrés, fonctionnement hors ligne, expiration et protection contre la réutilisation locale. |
+| 💳 | Paiements | Préparation pour Wave, Orange Money et Free Money via une API sécurisée. |
+| 📣 | Signalements citoyens | Déclaration d’incidents et partage des informations avec la communauté. |
+| 📍 | Autour de moi | Recentrage GPS, bouton SOS et mode économie de données. |
+| 🌐 | Accessibilité | Interface multilingue et lecture vocale. |
+| 📊 | Statistiques | Suivi des trajets et des économies réalisées. |
 
-| Bloc | Détail |
-| --- | --- |
-| Proposition de valeur | Mobilité en temps réel, paiement sans espèces, alertes utiles et service inclusif. |
-| Segments clients | Usagers quotidiens, étudiants, travailleurs, entreprises, municipalités, ONG et autorités. |
-| Canaux | Application Android, WhatsApp, réseaux sociaux, radios locales et partenariats de transport. |
-| Relations clients | Interface simple, assistance multilingue, notifications vocales et participation citoyenne. |
-| Sources de revenus | Premium, commissions de paiement, publicité locale, offres entreprises et statistiques anonymisées. |
-| Ressources clés | Application, données de mobilité, infrastructure cloud, équipe technique et expertise linguistique. |
-| Activités clés | Développement, exploitation des données, gestion des paiements, support et animation communautaire. |
-| Partenaires clés | Transporteurs, opérateurs mobile money, municipalités, ministère, universités et incubateurs locaux. |
-| Structure des coûts | Développement, hébergement, sécurité, support, traduction, communication et partenariats. |
+## 🧱 Architecture
 
-## Langues nationales ciblées
+```text
+teranga/
+├── app/                       # Application Android Kotlin / Jetpack Compose
+│   └── src/main/              # Écrans, thème, données locales et composants
+├── backend/                   # API Node.js pour Vercel
+│   ├── api/                   # Routes serverless
+│   ├── src/                   # Serveur HTTP, base de données et sécurité
+│   └── db/schema.sql          # Schéma PostgreSQL / Neon
+├── gradle/                    # Version catalog et wrapper Gradle
+└── README.md
+```
 
-L'application prévoit une base multilingue à enrichir avec des linguistes et locuteurs natifs :
+### 🛠️ Technologies
 
-1. Wolof
-2. Pulaar
-3. Sérère
-4. Mandinka
-5. Soninké
-6. Diola
-7. Balante
-8. Mancagne
-9. Noon
-10. Manjaque
-11. Saafi
-12. Bassari
-13. Bayot
-14. Bédik
-15. Ndut
-16. Palor
-17. Léhar
-18. Badiaranké
-19. Baïnouk
-20. Jalonké
+- **Android** : Kotlin, Jetpack Compose, Material 3, AndroidX, Room, KSP.
+- **Réseau** : Retrofit, OkHttp, Moshi et API REST.
+- **Cartographie** : WebView Leaflet avec tuiles CARTO/OpenStreetMap.
+- **Backend** : Node.js, modules ES, Vercel Functions et PostgreSQL/Neon.
+- **Sécurité** : Android Keystore, JWT, clés d’idempotence et variables d’environnement.
 
-Le français reste disponible comme langue de référence. Les traductions, la terminologie et les voix doivent être validées localement avant diffusion publique.
+## 🚀 Installation locale
 
-## Logo et icône
+### Prérequis
 
-Le logo officiel Téranga Moov doit être conservé sans modification et utilisé de manière cohérente dans l'application. La ressource principale est [img_app_icon.jpg](app/src/main/res/drawable/img_app_icon.jpg).
+- Android Studio récent
+- JDK 17
+- Node.js 20 ou version supérieure
+- Un émulateur Android ou un appareil physique
 
-Pour Android, fournir idéalement des exports carrés aux densités suivantes : `mdpi` 48 x 48 px, `hdpi` 72 x 72 px, `xhdpi` 96 x 96 px, `xxhdpi` 144 x 144 px et `xxxhdpi` 192 x 192 px. Garder une zone de sécurité intérieure pour éviter la découpe par les masques adaptatifs.
+### Construire l’application Android
 
-## Développement local
+Depuis la racine du dépôt :
 
-**Prérequis :** Android Studio, Java 17 et le Gradle Wrapper inclus dans le projet.
+```powershell
+.\gradlew.bat assembleDebug
+```
+
+L’APK est généré ici :
+
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
+
+Commandes utiles :
 
 ```powershell
 .\gradlew.bat :app:compileDebugKotlin
-.\gradlew.bat assembleDebug
 .\gradlew.bat test
+.\gradlew.bat assembleRelease
 ```
 
-Sans `KEYSTORE_PATH`, le build local utilise `debug.keystore` pour signer l'APK release. Pour une publication, fournir `KEYSTORE_PATH`, `STORE_PASSWORD` et `KEY_PASSWORD` dans l'environnement.
+Pour un build local sans clé de publication, `debug.keystore` est utilisé automatiquement. Pour signer une version destinée à la publication, définir `KEYSTORE_PATH`, `STORE_PASSWORD` et `KEY_PASSWORD` dans l’environnement.
 
-Vérifier également le backend :
+### Démarrer l’API
 
 ```powershell
-node --check backend/src/server.mjs
-node --check backend/src/db.mjs
-npm install --prefix backend
+cd backend
+npm install
+$env:JWT_SECRET = 'remplacer-par-une-cle-aleatoire-d-au-moins-32-caracteres'
+npm start
 ```
 
-Ouvrir ensuite le projet dans Android Studio et choisir un émulateur ou un appareil Android. La carte Leaflet charge ses tuiles depuis CARTO/OpenStreetMap lorsqu'une connexion Internet est disponible.
+Vérification syntaxique :
 
-## Neon et Vercel
+```powershell
+node --check src/server.mjs
+node --check src/db.mjs
+```
 
-1. Importer le dépôt dans Vercel et choisir `backend` comme **Root Directory**.
-2. Créer une base Neon depuis Vercel ou la console Neon.
-3. Exécuter [backend/db/schema.sql](backend/db/schema.sql) dans le SQL Editor Neon.
-4. Ajouter dans Vercel, pour Preview et Production :
+## 🔌 API disponible
+
+Les routes principales sont :
+
+| Méthode | Route | Usage |
+| --- | --- | --- |
+| `GET` | `/api/health` | Vérifier l’état de l’API et de la base de données. |
+| `POST` | `/api/auth/register` | Créer un compte. |
+| `POST` | `/api/auth/login` | Ouvrir une session. |
+| `GET` | `/api/vehicles` | Récupérer les véhicules disponibles. |
+| `GET` | `/api/alerts` | Récupérer les alertes de mobilité. |
+| `POST` | `/api/payments/charge` | Initialiser un paiement authentifié. |
+| `POST` | `/api/tickets/verify` | Vérifier un ticket authentifié. |
+
+Le mode paiement est désactivé par défaut avec `PAYMENTS_MODE=disabled`.
+
+## ☁️ Déploiement backend
+
+1. Importer le dossier `backend` dans Vercel en tant que **Root Directory**.
+2. Créer une base Neon ou Vercel Postgres.
+3. Exécuter [backend/db/schema.sql](backend/db/schema.sql) dans la console SQL.
+4. Configurer les variables suivantes dans Vercel :
 
 ```env
 POSTGRES_URL=<url-neon>
-JWT_SECRET=<secret-aleatoire-de-32-caracteres-minimum>
+JWT_SECRET=<secret-aleatoire-d-au-moins-32-caracteres>
 CORS_ORIGIN=https://<votre-projet>.vercel.app
 PAYMENTS_MODE=disabled
 ```
 
 5. Redéployer et vérifier `https://<votre-projet>.vercel.app/api/health`.
 
-La réponse attendue lorsque la base est disponible contient `"status":"ok"` et `"database":"ready"`.
+Pour compiler l’application avec l’URL de l’API déployée :
 
-Ne jamais committer `POSTGRES_URL`, `JWT_SECRET`, des tokens Mobile Money ou un fichier `.env`.
+```powershell
+.\gradlew.bat :app:assembleDebug -PterangaApiUrl=https://votre-api.vercel.app/
+```
 
-## Sécurité et production
+## 🔐 Sécurité et production
 
-Avant une publication :
+Avant toute mise en production :
 
-- remplacer les stockages mémoire du backend par PostgreSQL/Redis pour les véhicules, alertes et sessions ;
-- connecter les API officielles Wave, Orange Money et Free Money avec webhooks signés ;
+- remplacer les stockages mémoire par PostgreSQL/Redis ;
+- activer TLS, le rate limiting distribué et des logs structurés ;
+- faire tourner les secrets et signer les webhooks de paiement ;
 - utiliser une signature serveur pour les QR vérifiables par plusieurs contrôleurs ;
-- ajouter rate limiting, rotation des secrets, logs structurés et monitoring ;
-- configurer `google-services.json`, les clés de signature et Firebase Cloud Messaging ;
-- ajouter caméra, NFC carte réel, géofencing serveur et calculateur intermodal ;
-- publier une politique de confidentialité conforme à la CDP et valider les traductions avec des locuteurs natifs.
+- configurer `google-services.json`, Firebase Cloud Messaging et la clé de signature Android ;
+- valider les traductions et les voix avec des locuteurs natifs ;
+- publier une politique de confidentialité conforme à la réglementation sénégalaise.
 
-Le dossier `backend/node_modules/` est ignoré par Git. Les secrets doivent être configurés uniquement dans Vercel ou dans l’environnement local.
+⚠️ Ne jamais versionner `POSTGRES_URL`, `JWT_SECRET`, les clés Mobile Money, `google-services.json` ou un fichier `.env` contenant des secrets.
+
+## 🌐 Langues ciblées
+
+L’application prévoit une base multilingue à enrichir avec des linguistes et locuteurs natifs : français, wolof, pulaar, sérère, mandinka, soninké, diola, balante, mancagne, noon, manjaque, saafi, bassari, bayot, bédik, ndut, palor, léhar, badiaranké, baïnouk et jalonké.
+
+## 🤝 Contribution
+
+1. Créer une branche dédiée : `git switch -c feature/ma-fonctionnalite`.
+2. Effectuer les changements et ajouter les tests nécessaires.
+3. Vérifier `./gradlew.bat test` et `./gradlew.bat assembleDebug`.
+4. Ouvrir une Pull Request avec le contexte, les captures utiles et les étapes de vérification.
+
+## 📄 Licence
+
+Ce projet est distribué sous licence MIT. Voir [LICENSE](LICENSE).
+
+---
+
+<p align="center">Fait avec soin pour une mobilité plus accessible au Sénégal 🇸🇳</p>
