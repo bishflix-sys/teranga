@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body, #map { height: 100%; margin: 0; background: #dce7e9; }
+    #map { font-family: sans-serif; }
+    .map-header { position: absolute; z-index: 500; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; pointer-events: none; }
+    .map-header span { padding: 7px 10px; border-radius: 12px; background: #102a2ddd; color: white; font-size: 11px; font-weight: 800; letter-spacing: .06em; }
+    .vehicle { width: 30px; height: 30px; border: 2px solid white; border-radius: 50% 50% 50% 4px; transform: rotate(-45deg); box-shadow: 0 3px 9px #00101899; display: grid; place-items: center; }
+    .vehicle span { transform: rotate(45deg); color: #081923; font-size: 9px; font-weight: 900; }
+    .vehicle.selected { outline: 4px solid #f6c34488; }
+    .user { width: 16px; height: 16px; border: 3px solid white; border-radius: 50%; background: #16c784; box-shadow: 0 0 0 9px #16c78444, 0 2px 6px #00101899; }
+    .traffic { width: 18px; height: 18px; border: 3px solid white; border-radius: 50%; background: #ef4444; box-shadow: 0 2px 7px #00101899; }
+    .traffic.moderate { background: #f59e0b; }
+    .traffic-label { color: #17212d; font-size: 12px; font-weight: 700; }
+    .leaflet-control-attribution { font-size: 9px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="map-header"><span>CARTE EN DIRECT - DAKAR</span><span id="count">0 vehicules</span></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map', { zoomControl: false, minZoom: 11, maxZoom: 19 }).setView([14.6937, -17.4441], 13);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const markers = new Map();
+    let userMarker;
+    const trafficPoints = [
+      { lat: 14.7167, lng: -17.4677, name: 'VDN', level: 'Fort', delay: '+18 min' },
+      { lat: 14.7515, lng: -17.3847, name: 'Autoroute', level: 'Ralentissement', delay: '+12 min' },
+      { lat: 14.7042, lng: -17.4555, name: 'Patte d\'Oie', level: 'Dense', delay: '+9 min' }
+    ];
+    trafficPoints.forEach(point => {
+      const icon = L.divIcon({ className: '', html: '<div class="traffic"></div>', iconSize: [24, 24], iconAnchor: [12, 12] });
+      L.marker([point.lat, point.lng], { icon }).addTo(map).bindPopup('<strong>Trafic - ' + point.name + '</strong><br>' + point.level + '<br>Retard estime : ' + point.delay);
+    });
+
+    function showUser(location) {
+      if (!location) return;
+      const icon = L.divIcon({ className: '', html: '<div class="user"></div>', iconSize: [22, 22], iconAnchor: [11, 11] });
+      if (!userMarker) userMarker = L.marker([location.lat, location.lng], { icon, zIndexOffset: 1000 }).addTo(map);
+      else userMarker.setLatLng([location.lat, location.lng]);
+      map.setView([location.lat, location.lng], 15, { animate: true });
+    }
+
+    window.updateMap = function(vehicles, selectedId, userLocation) {
+      showUser(userLocation);
+      const activeIds = new Set(vehicles.map(vehicle => vehicle.id));
+      markers.forEach((marker, id) => {
+        if (!activeIds.has(id)) { map.removeLayer(marker); markers.delete(id); }
+      });
+      vehicles.forEach(vehicle => {
+        const colors = { 'BRT Dakar': '#22c7d6', 'TER Train': '#c084fc', 'Dakar Dem Dikk': '#16c784', 'AFTU Tata': '#4fd1c5', 'Car Rapide / Ndiaga': '#f6c344', 'Taxi Urbain / Clando': '#fb923c' };
+        const html = '<div class="vehicle ' + (vehicle.id === selectedId ? 'selected' : '') + '" style="background:' + (colors[vehicle.category] || '#f6c344') + '"><span>' + vehicle.line + '</span></div>';
+        const icon = L.divIcon({ className: '', html, iconSize: [34, 34], iconAnchor: [17, 30] });
+        let marker = markers.get(vehicle.id);
+        if (!marker) {
+          marker = L.marker([vehicle.lat, vehicle.lng], { icon }).addTo(map);
+          marker.on('click', () => window.TerangaBridge && window.TerangaBridge.selectVehicle(vehicle.id));
+          markers.set(vehicle.id, marker);
+        } else marker.setLatLng([vehicle.lat, vehicle.lng]).setIcon(icon);
+        marker.bindPopup('<strong>' + vehicle.category + ' - ' + vehicle.line + '</strong><br>Vehicule : ' + vehicle.number);
+      });
+      document.getElementById('count').textContent = vehicles.length + ' vehicules';
+      setTimeout(() => map.invalidateSize(), 50);
+    };
+    setTimeout(() => map.invalidateSize(), 250);
+  </script>
+</body>
+</html>

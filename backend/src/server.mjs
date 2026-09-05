@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual, createHmac } from 'node:crypto';
+import { getMichelinAccessToken } from './michelin.mjs';
 
 const port = Number(process.env.PORT || 8080);
 const jwtSecret = process.env.JWT_SECRET;
@@ -87,6 +88,13 @@ const route = async (request, response) => {
 
     const user = authUser(request);
     if (!user) return json(response, 401, { error: 'authentication required' });
+    if (request.method === 'GET' && request.url === '/michelin/token') {
+      try {
+        return json(response, 200, { access_token: await getMichelinAccessToken(), token_type: 'Bearer' });
+      } catch (error) {
+        return json(response, 503, { error: 'Michelin provider not configured' });
+      }
+    }
     if (request.method === 'POST' && request.url === '/payments/charge') {
       const key = request.headers['idempotency-key'];
       const body = await readBody(request);

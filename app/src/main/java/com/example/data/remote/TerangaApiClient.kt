@@ -33,7 +33,24 @@ class TerangaApiClient(baseUrl: String) {
             }
         }.getOrDefault(BackendHealth.Unavailable)
     }
+
+    suspend fun register(email: String, password: String): AuthResponse {
+        return authenticate { service -> service.register(AuthRequest(email, password)) }
+    }
+
+    suspend fun login(email: String, password: String): AuthResponse {
+        return authenticate { service -> service.login(AuthRequest(email, password)) }
+    }
+
+    private suspend fun authenticate(call: suspend (TerangaApi) -> retrofit2.Response<AuthResponse>): AuthResponse {
+        val service = api ?: throw AuthApiException(null)
+        val response = call(service)
+        if (response.isSuccessful) return response.body() ?: throw AuthApiException(response.code())
+        throw AuthApiException(response.code())
+    }
 }
+
+class AuthApiException(val statusCode: Int?) : Exception()
 
 enum class BackendHealth {
     Ready,

@@ -33,9 +33,14 @@ Routes disponibles :
 - `POST /auth/login`
 - `GET /vehicles`
 - `GET /alerts`
+- `GET /api/michelin/token` avec `Authorization: Bearer ...` pour obtenir un token Michelin temporaire sur Vercel (`/michelin/token` en local)
 - `POST /payments/charge` avec `Authorization` et `Idempotency-Key`
 - `POST /tickets/verify` avec `Authorization`
 
 Le mode paiement reste désactivé par défaut (`PAYMENTS_MODE=disabled`). Un adaptateur Wave, Orange Money ou Free Money doit être ajouté côté serveur avant de passer en `live`. Les cartes, mots de passe et secrets ne doivent jamais être stockés dans le dépôt.
+
+### Configuration Michelin
+
+Renseigner `MICHELIN_API_KEY`, `MICHELIN_CLIENT_ID`, `MICHELIN_CLIENT_SECRET` et, si nécessaire, `MICHELIN_SCOPE` dans l’environnement du backend. Le backend appelle `POST https://api.michelin.com/idp/v1/internal/oauth/token/accesstoken` avec `grant_type=client_credentials` en query string et les identifiants en `application/x-www-form-urlencoded`. Le `client_secret` reste uniquement côté serveur.
 
 Ce socle utilise des stockages mémoire pour le développement. Avant production, remplacer les `Map` par PostgreSQL/Redis, ajouter TLS au reverse proxy, rotation des secrets, rate limiting distribué, logs structurés et validation webhook opérateur.

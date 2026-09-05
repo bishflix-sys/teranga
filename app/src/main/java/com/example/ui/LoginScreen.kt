@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.repository.UserAccountRepository
+import com.example.data.remote.AuthApiException
+import kotlinx.coroutines.launch
 import com.example.ui.theme.HighDensityBg
 import com.example.ui.theme.HighDensityIndigo
 import com.example.ui.theme.HighDensityIndigoLight
@@ -64,6 +67,8 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -112,7 +117,7 @@ fun LoginScreen(
             onValueChange = { identifier = it; errorMessage = null },
             modifier = Modifier.fillMaxWidth(),
             colors = terangaOutlinedTextFieldColors(),
-            label = { Text("Téléphone ou email") },
+            label = { Text("Adresse email") },
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
             singleLine = true
         )
@@ -137,7 +142,7 @@ fun LoginScreen(
         )
         if (isCreatingAccount) {
             Text(
-                text = "6 caractères minimum",
+                text = "12 caractères minimum",
                 color = HighDensitySlate500,
                 fontSize = 12.sp,
                 modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
@@ -149,22 +154,43 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                val authenticated = if (isCreatingAccount) {
-                    accountRepository.createAccount(name, identifier, password)
-                } else {
-                    accountRepository.login(identifier, password)
-                }
-                if (authenticated) onAuthenticated() else errorMessage = if (isCreatingAccount) {
-                    "Renseignez vos informations et utilisez un mot de passe de 6 caractères minimum."
-                } else {
-                    "Identifiant ou mot de passe incorrect."
+                if (isLoading) return@Button
+                coroutineScope.launch {
+                    isLoading = true
+                    errorMessage = null
+                    try {
+                        val authenticated = if (isCreatingAccount) {
+                            accountRepository.createAccount(name, identifier, password)
+                        } else {
+                            accountRepository.login(identifier, password)
+                        }
+                        if (authenticated) onAuthenticated() else errorMessage = if (isCreatingAccount) {
+                            "Saisissez un nom, un email valide et un mot de passe de 12 caractères minimum."
+                        } else {
+                            "Saisissez une adresse email et un mot de passe valides."
+                        }
+                    } catch (error: AuthApiException) {
+                        errorMessage = when (error.statusCode) {
+                            401 -> "Email ou mot de passe incorrect."
+                            409 -> "Un compte existe déjà avec cet email."
+                            else -> "Impossible de contacter le serveur. Vérifiez votre connexion."
+                        }
+                    } catch (_: Exception) {
+                        errorMessage = "Impossible de contacter le serveur. Vérifiez votre connexion."
+                    } finally {
+                        isLoading = false
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = HighDensityIndigo)
         ) {
-            Text(if (isCreatingAccount) "Créer mon compte" else "Se connecter", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(
+                if (isLoading) "Connexion..." else if (isCreatingAccount) "Créer mon compte" else "Se connecter",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
         }
         Spacer(modifier = Modifier.height(14.dp))
         Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {

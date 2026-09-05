@@ -93,7 +93,7 @@ teranga/
 
 - **Android** : Kotlin, Jetpack Compose, Material 3, AndroidX, Room, KSP.
 - **Réseau** : Retrofit, OkHttp, Moshi et API REST.
-- **Cartographie** : WebView Leaflet avec tuiles CARTO/OpenStreetMap.
+- **Cartographie** : WebView Leaflet avec tuiles OpenStreetMap, centrage GPS, véhicules et zones de trafic à Dakar.
 - **Backend** : Node.js, modules ES, Vercel Functions et PostgreSQL/Neon.
 - **Sécurité** : Android Keystore, JWT, clés d’idempotence et variables d’environnement.
 
@@ -243,7 +243,7 @@ L’application prévoit une base multilingue à enrichir avec des linguistes et
 - **Le build release demande une clé** : définir `KEYSTORE_PATH`, `STORE_PASSWORD` et `KEY_PASSWORD`, ou utiliser le `debug.keystore` prévu pour les builds locaux.
 - **L’API refuse les requêtes authentifiées** : vérifier que `JWT_SECRET` contient au moins 32 caractères.
 - **La base est indisponible** : vérifier `POSTGRES_URL`, le schéma `backend/db/schema.sql` et la réponse de `/api/health`.
-- **La carte reste vide** : vérifier la connexion Internet et l’accès aux tuiles CARTO/OpenStreetMap.
+- **La carte reste vide** : vérifier la connexion Internet et l’accès aux tuiles OpenStreetMap.
 
 ## 📄 Licence
 

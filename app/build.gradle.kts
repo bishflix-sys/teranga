@@ -19,7 +19,7 @@ android {
     targetSdk = 36
     versionCode = 1
     versionName = "1.0"
-    val apiUrl = providers.gradleProperty("terangaApiUrl").orElse("https://api.teranga-moov.sn/").get()
+    val apiUrl = providers.gradleProperty("terangaApiUrl").orElse("https://teranga-pearl.vercel.app/").get()
     buildConfigField("String", "TERANGA_API_URL", "\"$apiUrl\"")
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

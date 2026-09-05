@@ -81,7 +81,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import org.json.JSONArray
 import com.example.data.model.CitizenReportEntity
 import com.example.data.model.CrowdingLevel
 import com.example.data.model.PassSubscriptionEntity
@@ -198,7 +197,7 @@ fun CrowdingPill(level: CrowdingLevel, modifier: Modifier = Modifier) {
 
 private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
-/** Interactive Leaflet map with a lightweight 3D visual treatment for Dakar transit. */
+/** Embedded Leaflet map with GPS centering, vehicles and local traffic markers. */
 @Composable
 fun TransitLiveMapCanvas(
     vehicles: List<VehicleRealtime>,
@@ -207,7 +206,7 @@ fun TransitLiveMapCanvas(
     userLocation: UserLocation? = null,
     modifier: Modifier = Modifier
 ) {
-    val vehicleJson = remember(vehicles) { vehicles.toLeafletJson() }
+    val vehicleJson = remember(vehicles) { vehicles.toMapJson() }
     val selectedId = selectedVehicle?.id.orEmpty()
     val userLocationJson = userLocation?.let { "{\"lat\":${it.latitude},\"lng\":${it.longitude}}" } ?: "null"
 
@@ -216,21 +215,16 @@ fun TransitLiveMapCanvas(
             .fillMaxWidth()
             .height(280.dp)
             .clip(RoundedCornerShape(20.dp))
-            .testTag("leaflet_live_map"),
+            .testTag("live_map"),
         factory = { context ->
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.allowFileAccess = true
                 settings.allowContentAccess = false
-                settings.allowFileAccessFromFileURLs = false
-                settings.allowUniversalAccessFromFileURLs = true
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
-                        view.evaluateJavascript(
-                            "window.updateVehicles($vehicleJson, '$selectedId', $userLocationJson);",
-                            null
-                        )
+                        view.evaluateJavascript("window.updateMap($vehicleJson, '$selectedId', $userLocationJson);", null)
                     }
                 }
                 addJavascriptInterface(object {
@@ -239,11 +233,11 @@ fun TransitLiveMapCanvas(
                         vehicles.firstOrNull { it.id == id }?.let(onSelectVehicle)
                     }
                 }, "TerangaBridge")
-                loadUrl("file:///android_asset/leaflet_map.html")
+                loadUrl("file:///android_asset/transit_map.html")
             }
         },
         update = { webView ->
-            webView.evaluateJavascript("window.updateVehicles($vehicleJson, '$selectedId', $userLocationJson);", null)
+            webView.evaluateJavascript("window.updateMap($vehicleJson, '$selectedId', $userLocationJson);", null)
         },
         onRelease = { webView ->
             webView.stopLoading()
@@ -253,7 +247,7 @@ fun TransitLiveMapCanvas(
     )
 }
 
-private fun List<VehicleRealtime>.toLeafletJson(): String = JSONArray().apply {
+private fun List<VehicleRealtime>.toMapJson(): String = org.json.JSONArray().apply {
     forEach { vehicle ->
         put(org.json.JSONObject().apply {
             put("id", vehicle.id)
@@ -262,7 +256,6 @@ private fun List<VehicleRealtime>.toLeafletJson(): String = JSONArray().apply {
             put("category", vehicle.category.label)
             put("lat", vehicle.latitude)
             put("lng", vehicle.longitude)
-            put("heading", vehicle.heading)
         })
     }
 }.toString()
