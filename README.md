@@ -93,7 +93,7 @@ teranga/
 
 - **Android** : Kotlin, Jetpack Compose, Material 3, AndroidX, Room, KSP.
 - **Réseau** : Retrofit, OkHttp, Moshi et API REST.
-- **Cartographie** : WebView Leaflet avec tuiles OpenStreetMap, centrage GPS, véhicules et zones de trafic à Dakar.
+- **Cartographie** : WebView Leaflet avec tuiles OpenStreetMap, centrage GPS, véhicules et zones de trafic à Dakar. La carte fonctionne sans clé Michelin ; les zones de trafic proviennent des alertes locales de l’application.
 - **Backend** : Node.js, modules ES, Vercel Functions et PostgreSQL/Neon.
 - **Sécurité** : Android Keystore, JWT, clés d’idempotence et variables d’environnement.
 
@@ -157,6 +157,7 @@ Les routes principales sont :
 | `POST` | `/api/auth/login` | Ouvrir une session. |
 | `GET` | `/api/vehicles` | Récupérer les véhicules disponibles. |
 | `GET` | `/api/alerts` | Récupérer les alertes de mobilité. |
+| `GET` | `/api/michelin/token` | Obtenir un token Michelin temporaire avec une session utilisateur. |
 | `POST` | `/api/payments/charge` | Initialiser un paiement authentifié. |
 | `POST` | `/api/tickets/verify` | Vérifier un ticket authentifié. |
 
@@ -164,10 +165,10 @@ Le mode paiement est désactivé par défaut avec `PAYMENTS_MODE=disabled`.
 
 ### Exemple de vérification de santé
 
-Avec l’API lancée localement sur le port `3000` :
+Avec l’API lancée localement sur le port `8080` :
 
 ```powershell
-Invoke-RestMethod -Uri http://localhost:3000/api/health -Method Get
+Invoke-RestMethod -Uri http://localhost:8080/health -Method Get
 ```
 
 Réponse attendue lorsque la base de données est disponible :
@@ -191,9 +192,15 @@ POSTGRES_URL=<url-neon>
 JWT_SECRET=<secret-aleatoire-d-au-moins-32-caracteres>
 CORS_ORIGIN=https://<votre-projet>.vercel.app
 PAYMENTS_MODE=disabled
+MICHELIN_API_KEY=<clé-api-michelin>
+MICHELIN_CLIENT_ID=<client-id-michelin>
+MICHELIN_CLIENT_SECRET=<secret-client-michelin>
+MICHELIN_SCOPE=<scope-optionnel>
 ```
 
 5. Redéployer et vérifier `https://<votre-projet>.vercel.app/api/health`.
+
+Le token Michelin est généré côté backend avec OAuth 2.0 `client_credentials`. Le `MICHELIN_CLIENT_SECRET` ne doit jamais être ajouté à l’application Android ni commité dans Git.
 
 Pour compiler l’application avec l’URL de l’API déployée :
 
