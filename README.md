@@ -210,10 +210,20 @@ Pour compiler l’application avec l’URL de l’API déployée :
 
 ## 🔐 Sécurité et production
 
+Protections déjà actives :
+
+- validation stricte des JWT HS256, expiration et rejet des tokens malformés ;
+- mots de passe hachés avec `scrypt` et comparaison en temps constant ;
+- limitation des payloads JSON à 100 Ko ;
+- limitation des tentatives d’inscription et de connexion ;
+- en-têtes `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` et HSTS ;
+- secrets Michelin utilisés uniquement côté backend et exclus du dépôt.
+
 Avant toute mise en production :
 
 - remplacer les stockages mémoire par PostgreSQL/Redis ;
-- activer TLS, le rate limiting distribué et des logs structurés ;
+- activer TLS, un rate limiting distribué et des logs structurés ;
+- prévoir la rotation périodique de `JWT_SECRET`, des secrets Michelin et des credentials de base de données ;
 - faire tourner les secrets et signer les webhooks de paiement ;
 - utiliser une signature serveur pour les QR vérifiables par plusieurs contrôleurs ;
 - configurer `google-services.json`, Firebase Cloud Messaging et la clé de signature Android ;

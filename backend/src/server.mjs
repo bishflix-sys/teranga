@@ -11,6 +11,7 @@ const idempotentPayments = new Map();
 const tickets = new Map();
 const vehicles = [];
 const alerts = [];
+const attempts = new Map();
 
 const json = (response, status, body) => {
   response.writeHead(status, {
@@ -19,6 +20,8 @@ const json = (response, status, body) => {
     'x-content-type-options': 'nosniff',
     'x-frame-options': 'DENY',
     'referrer-policy': 'no-referrer',
+    'permissions-policy': 'camera=(), microphone=(), geolocation=()',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains',
     'access-control-allow-origin': corsOrigin,
     'access-control-allow-headers': 'content-type, authorization, idempotency-key',
     'access-control-allow-methods': 'GET, POST, OPTIONS'
@@ -30,7 +33,7 @@ const readBody = async request => {
   let raw = '';
   for await (const chunk of request) {
     raw += chunk;
-    if (raw.length > 1_000_000) throw new Error('payload too large');
+    if (raw.length > 100_000) throw new Error('payload too large');
   }
   return raw ? JSON.parse(raw) : {};
 };
@@ -44,13 +47,20 @@ const tokenFor = user => {
 };
 
 const authUser = request => {
-  const value = request.headers.authorization || '';
-  const [scheme, token] = value.split(' ');
-  if (scheme !== 'Bearer' || !token) return null;
-  const [header, payload, signature] = token.split('.');
-  if (!header || !payload || !signature || !timingSafeEqual(Buffer.from(signature), Buffer.from(sign(`${header}.${payload}`)))) return null;
-  const claims = JSON.parse(Buffer.from(payload, 'base64url').toString());
-  return claims.exp > Math.floor(Date.now() / 1000) ? users.get(claims.sub) : null;
+  try {
+    const value = request.headers.authorization || '';
+    const [scheme, token] = value.split(' ');
+    if (scheme !== 'Bearer' || !token) return null;
+    const [header, payload, signature] = token.split('.');
+    if (!header || !payload || !signature) return null;
+    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    if (claims.alg && claims.alg !== 'HS256') return null;
+    const expected = sign(`${header}.${payload}`);
+    if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+    return typeof claims.sub === 'string' && Number.isFinite(claims.exp) && claims.exp > Math.floor(Date.now() / 1000) ? users.get(claims.sub) : null;
+  } catch {
+    return null;
+  }
 };
 
 const hashPassword = password => {
@@ -58,9 +68,23 @@ const hashPassword = password => {
   return `${salt.toString('hex')}:${scryptSync(password, salt, 64).toString('hex')}`;
 };
 const verifyPassword = (password, stored) => {
-  const [saltHex, hashHex] = stored.split(':');
-  const actual = scryptSync(password, Buffer.from(saltHex, 'hex'), 64);
-  return timingSafeEqual(actual, Buffer.from(hashHex, 'hex'));
+  try {
+    const [saltHex, hashHex] = String(stored).split(':');
+    if (!saltHex || !hashHex) return false;
+    const actual = scryptSync(password, Buffer.from(saltHex, 'hex'), 64);
+    const expected = Buffer.from(hashHex, 'hex');
+    return actual.length === expected.length && timingSafeEqual(actual, expected);
+  } catch { return false; }
+};
+const allowAttempt = (request, key) => {
+  const now = Date.now();
+  const address = request.headers['x-forwarded-for']?.split(',')[0]?.trim() || request.socket.remoteAddress || 'unknown';
+  const bucketKey = `${key}:${address}`;
+  const bucket = attempts.get(bucketKey) || { count: 0, resetAt: now + 900_000 };
+  if (bucket.resetAt <= now) { bucket.count = 0; bucket.resetAt = now + 900_000; }
+  bucket.count += 1;
+  attempts.set(bucketKey, bucket);
+  return bucket.count <= 5;
 };
 const validPhone = phone => /^(?:70|74|75|76|77|78)\d{7}$/.test(String(phone).replace(/\D/g, '').replace(/^221/, ''));
 const validMethod = method => ['Wave', 'Orange Money', 'Free Money'].includes(method);
@@ -71,6 +95,7 @@ const route = async (request, response) => {
   try {
     if (request.method === 'POST' && request.url === '/auth/register') {
       const body = await readBody(request);
+      if (!allowAttempt(request, `register:${String(body.email || '').toLowerCase()}`)) return json(response, 429, { error: 'too many registration attempts' });
       if (typeof body.email !== 'string' || !/^\S+@\S+\.\S+$/.test(body.email) || typeof body.password !== 'string' || body.password.length < 12) return json(response, 400, { error: 'invalid credentials' });
       if ([...users.values()].some(user => user.email === body.email.toLowerCase())) return json(response, 409, { error: 'account already exists' });
       const user = { id: randomUUID(), email: body.email.toLowerCase(), passwordHash: hashPassword(body.password) };
@@ -79,6 +104,7 @@ const route = async (request, response) => {
     }
     if (request.method === 'POST' && request.url === '/auth/login') {
       const body = await readBody(request);
+      if (!allowAttempt(request, `login:${String(body.email || '').toLowerCase()}`)) return json(response, 429, { error: 'too many login attempts' });
       const user = [...users.values()].find(candidate => candidate.email === String(body.email).toLowerCase());
       if (!user || typeof body.password !== 'string' || !verifyPassword(body.password, user.passwordHash)) return json(response, 401, { error: 'invalid credentials' });
       return json(response, 200, { token: tokenFor(user), user: { id: user.id, email: user.email } });

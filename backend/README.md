@@ -44,3 +44,5 @@ Le mode paiement reste désactivé par défaut (`PAYMENTS_MODE=disabled`). Un ad
 Renseigner `MICHELIN_API_KEY`, `MICHELIN_CLIENT_ID`, `MICHELIN_CLIENT_SECRET` et, si nécessaire, `MICHELIN_SCOPE` dans l’environnement du backend. Le backend appelle `POST https://api.michelin.com/idp/v1/internal/oauth/token/accesstoken` avec `grant_type=client_credentials` en query string et les identifiants en `application/x-www-form-urlencoded`. Le `client_secret` reste uniquement côté serveur.
 
 Ce socle utilise des stockages mémoire pour le développement. Avant production, remplacer les `Map` par PostgreSQL/Redis, ajouter TLS au reverse proxy, rotation des secrets, rate limiting distribué, logs structurés et validation webhook opérateur.
+
+Les routes d’authentification appliquent une limite de tentatives, les JWT malformés sont rejetés sans exception et les payloads JSON sont limités à 100 Ko. En production, compléter avec un rate limiting distribué, la rotation des secrets et une supervision des logs.
