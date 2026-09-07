@@ -24,7 +24,7 @@ Téranga Moov est une super-app conçue pour améliorer les déplacements quotid
 
 Le projet est organisé en deux modules :
 
-- **Application Android** : interface Jetpack Compose, carte interactive, données locales Room et prise en charge multilingue.
+- **Application Android** : interface Jetpack Compose, navigation entre les écrans Téranga Moov, images distantes avec Coil, données locales Room et prise en charge multilingue.
 - **API backend** : routes Node.js déployables sur Vercel, authentification, tickets, paiements et données temps réel.
 
 ## 📱 Aperçu de l’application
@@ -101,18 +101,22 @@ teranga/
 
 ### Prérequis
 
-- Android Studio récent
-- JDK 17
-- Node.js 20 ou version supérieure
-- Un émulateur Android ou un appareil physique
 
 ### Construire l’application Android
 
 Depuis la racine du dépôt :
 
-```powershell
-.\gradlew.bat assembleDebug
+```bash
+./gradlew assembleDebug
 ```
+
+Sous Linux ou dans un conteneur sans permission d’exécution sur le wrapper :
+
+```bash
+bash ./gradlew assembleDebug
+```
+
+Sous Windows, utiliser `./gradlew.bat assembleDebug` depuis PowerShell.
 
 L’APK est généré ici :
 
@@ -122,11 +126,19 @@ app/build/outputs/apk/debug/app-debug.apk
 
 Commandes utiles :
 
-```powershell
-.\gradlew.bat :app:compileDebugKotlin
-.\gradlew.bat test
-.\gradlew.bat assembleRelease
+```bash
+./gradlew :app:compileDebugKotlin
+./gradlew test
+./gradlew assembleRelease
 ```
+
+Pour un APK de test signé avec la clé de debug :
+
+```bash
+./gradlew assembleDebug
+```
+
+Le fichier obtenu est `app/build/outputs/apk/debug/app-debug.apk`. La configuration de debug attend un fichier `debug.keystore` à la racine du projet ; il peut être généré localement avec les identifiants Android standards `androiddebugkey` / `android`.
 
 Pour un build local sans clé de publication, `debug.keystore` est utilisé automatiquement. Pour signer une version destinée à la publication, définir `KEYSTORE_PATH`, `STORE_PASSWORD` et `KEY_PASSWORD` dans l’environnement.
 
@@ -204,8 +216,8 @@ Le token Michelin est généré côté backend avec OAuth 2.0 `client_credential
 
 Pour compiler l’application avec l’URL de l’API déployée :
 
-```powershell
-.\gradlew.bat :app:assembleDebug -PterangaApiUrl=https://votre-api.vercel.app/
+```bash
+./gradlew :app:assembleDebug -PterangaApiUrl=https://votre-api.vercel.app/
 ```
 
 ## 🔐 Sécurité et production
